@@ -1,0 +1,31 @@
+# 所有文字檔強制使用 LF（Windows 與 WSL 共用時避免換行符號差異）
+* text=auto eol=lf
+
+# 明確指定常見文字檔類型
+*.py    text eol=lf
+*.js    text eol=lf
+*.ts    text eol=lf
+*.json  text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.toml  text eol=lf
+*.md    text eol=lf
+*.txt   text eol=lf
+*.sh    text eol=lf
+*.cfg   text eol=lf
+*.ini   text eol=lf
+*.env   text eol=lf
+
+# 二進位檔案不做換行處理
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.zip   binary
+*.tar   binary
+*.gz    binary
+*.usd   binary
+*.usdc  binary
+*.usdz  binary
