@@ -225,3 +225,5 @@ build/
 __pycache__/
 .claude
 .vscode
+mosquitto/data/ 
+mosquitto/log/
