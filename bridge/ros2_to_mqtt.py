@@ -1,3 +1,4 @@
+import json
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -41,9 +42,15 @@ class Ros2MqttBridge(Node):
 
     def onRos2Message(self, msg, mqtt_topic):
         # get message from ROS2 and send to MQTT
-        self.mqttClient_.publish(mqtt_topic, msg.data)
-        self.get_logger().info(f"Published: {mqtt_topic} -> {msg.data}")
-        pass
+        try:
+            data = json.loads(msg.data)
+            self.mqttClient_.publish(mqtt_topic, msg.data)
+            self.get_logger().info(f"Published: {mqtt_topic} -> {msg.data}")
+        except json.JSONDecodeError as e:
+            self.get_logger().warn(f"JSON parse error: {e}")
+        except Exception as e:
+            self.get_logger().warn(f"Publish error: {e}")
+            
 
     def destroy_node(self):
         # clean up the connection of MQTT when node end
