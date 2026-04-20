@@ -1,0 +1,10 @@
+[package]
+title = "Factory Floor Digital Twin"
+description = "Real-time factory floor monitoring via MQTT"
+version = "0.1.0"
+
+[[python.module]]
+name = "omniverse_factory_twin"
+
+[dependencies]
+"omni.kit.uiapp" = {}
