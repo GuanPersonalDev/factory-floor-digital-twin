@@ -11,10 +11,17 @@ class BaseMqttExtension(omni.ext.IExt):
         print(f"[{self.__class__.__name__}] activated")
         self.mqttClient_ = MqttClient(self.MQTT_HOST, self.MQTT_PORT)
         self.mqttClient_.setMessageCallback(self.onMqttMessage)
-        self.mqttClient_.connect(self.MQTT_TOPICS)
         self.onExtensionStartup(ext_id)
+        self.mqttClient_.connect(self.MQTT_TOPICS)
 
-    def onExtensionStartup(self):
+    def on_shutdown(self):
+        print(f"[{self.__class__.__name__}] shutdown")
+        self.onExtensionShutdown()
+        if hasattr(self, 'mqttClient_') and self.mqttClient_:
+            self.mqttClient_.disconnect()
+            self.mqttClient_ = None
+
+    def onExtensionStartup(self, ext_id):
         pass
 
     def onExtensionShutdown(self):
