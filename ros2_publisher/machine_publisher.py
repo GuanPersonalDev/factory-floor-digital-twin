@@ -25,7 +25,7 @@ class MachinePublisher(Node):
             "machine_id": machine_id,
             "temperature": round(random.uniform(60.0, 95.0), 1),
             "vibration": round(random.uniform(0.1, 5.0), 2),
-            "status": random.choice(["running", "running", "running", "warning", "erro"]),
+            "status": random.choice(["running", "running", "running", "warning", "error"]),
         }
 
     def publishMachineData(self):
