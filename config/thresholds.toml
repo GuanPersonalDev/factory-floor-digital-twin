@@ -1,5 +1,12 @@
 # Machine parameter threshold setting
 
+[parameter_def]
+parameter_list = [
+    "temperature",
+    "vibration",
+    "operation_mode"
+]
+
 [temperature]
 unit = "°C"
 warning = 70.0
