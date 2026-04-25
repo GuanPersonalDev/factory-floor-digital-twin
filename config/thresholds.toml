@@ -1,0 +1,32 @@
+# Machine parameter threshold setting
+
+[temperature]
+unit = "°C"
+warning = 70.0
+error = 85.0
+
+[vibration]
+unit = "mm/s"
+warning = 5.0
+error = 10.0
+
+
+# 運作狀態定義
+
+[operation_mode]
+valid_values = ["RUNNING", "IDLE", "SHUTDOWN", "OFFLINE"]
+
+[operation_mode.override_color]
+SHUTDOWN = [0.5, 0.5, 0.0]
+OFFLINE = [0.2, 0.2, 0.2]
+
+[operation_mode.opacity]
+RUNNING = 1.0
+IDLE = 0.6
+SHUTDOWN = 0.4
+OFFLINE = 0.3
+
+[severity_color]
+NORMAL = [0.0, 0.8, 0.0]
+WARNING = [1.0, 0.6, 0.0]
+ERROR = [1.0, 0.0, 0.0]
