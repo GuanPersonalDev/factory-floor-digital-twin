@@ -1,18 +1,10 @@
 _NAMESPACE = "factory"
 
-PARAMS = ["temperature", "vibration", "operation_mode"]
-
 def getRos2Topic(machine_id: str, param: str) -> str:
     return f"/{_NAMESPACE}/{machine_id}/{param}"
 
 def getMqttTopic(machine_id: str, param: str) -> str:
     return f"{_NAMESPACE}/{machine_id}/{param}"
-
-def getAllRos2Topics(machine_id: str) -> dict[str, str]:
-    return {param: getRos2Topic(machine_id, param) for param in PARAMS}
-
-def getAllMqttTopics(machine_id: str) -> dict[str, str]:
-    return {param: getMqttTopic(machine_id, param) for param in PARAMS}
 
 def getMqttSubscribePattern(machine_id: str) -> str:
     return f"{_NAMESPACE}/{machine_id}/+"
@@ -30,11 +22,6 @@ def parseMqttTopic(topic: str) -> tuple[str, str] | None:
 # Smoke Test
 if __name__ == "__main__":
     machine_id = "machine_01"
-
-    print(f"--- {machine_id} topic list --- ")
-    for param in PARAMS:
-        print(f"\tROS2 : {getRos2Topic(machine_id, param)}")
-        print(f"\tMQTT : {getMqttTopic(machine_id, param)}")
 
     print(f"--- Subscribe pattern ---")
     print(f"\tSingle machine : {getMqttSubscribePattern(machine_id)}")

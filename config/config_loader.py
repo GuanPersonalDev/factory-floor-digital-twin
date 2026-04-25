@@ -1,4 +1,3 @@
-from topic_resolver import getAllRos2Topics, getAllMqttTopics
 """
 Read machines.toml and thresholds.toml
 provide the interface for extension
@@ -28,11 +27,11 @@ class MachineConfig:
         self.location = data["location"]
 
     def getRosTopic(self, param: str) -> str:
-        from topic_resolver import getRos2Topic
+        from config.topic_resolver import getRos2Topic
         return getRos2Topic(self.machine_id, param)
 
     def getMqttTopic(self, param: str) -> str:
-        from topic_resolver import getMqttTopic
+        from config.topic_resolver import getMqttTopic
         return getMqttTopic(self.machine_id, param)
 
     def __repr__(self):
@@ -68,6 +67,7 @@ class FactoryConfig:
         self._machines = [
             MachineConfig(m) for m in raw_machines.get("machines", [])
         ]
+        self._param_list = self._thresholds.get("parameter_def",{}).get("parameter_list",{})
 
     def getMachineById(self, machine_id: str) -> Optional[MachineConfig]:
         for m in self._machines:
@@ -106,6 +106,14 @@ class FactoryConfig:
     def machines(self) -> list[MachineConfig]:
         return self._machines
     
+    @property
+    def parameters(self) -> list[str]:
+        return self._param_list
+
+    @property
+    def operation_mode(self) -> list[str]:
+        return self._thresholds.get("operation_mode",{}).get("valid_values", {})
+    
     def __repr__(self):
         return f"Factory config with {len(self._machines)} machines"
 
@@ -120,7 +128,11 @@ if __name__ == "__main__":
         print(f"\tUSD: {m.usd_prim_path}")
         print(f"\tMQTT temperature: {m.getMqttTopic('temperature')}")
 
-    print("\n --- Thresholds test ---")
+    print("\n--- Parameter list ---")
+    for p in config.parameters:
+        print(p)
+
+    print("\n--- Thresholds test ---")
     test_cases = [
         ("temperature", 60.0),
         ("temperature", 72.5),
