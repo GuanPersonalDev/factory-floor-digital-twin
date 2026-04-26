@@ -75,15 +75,15 @@ class FactoryConfig:
                 return m
         return None
 
-    def computeSeverity(self, param: str, value: float) -> str:
+    def computeSeverity(self, param: str, value: float) -> tuple[str, int]:
         t = self._thresholds.get(param)
         if t is None:
             raise NameError(f"Not found param threshold in {self._THRESHOLD_CONFIG} with param name : {param}")
         if value >= t["error"]:
-            return "ERROR"
+            return "ERROR", 2
         if value >= t["warning"]:
-            return "WARNING"
-        return "NORMAL"
+            return "WARNING", 1
+        return "NORMAL", 0
 
     def getSeverityColor(self, severity: str) -> list[float]:
         colors = self._thresholds.get("severity_color", {})

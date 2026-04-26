@@ -5,14 +5,16 @@ class BaseMqttExtension(omni.ext.IExt):
     
     MQTT_HOST = "localhost"
     MQTT_PORT = 1883
-    MQTT_TOPICS: list[str] = []
 
     def on_startup(self, ext_id):
         print(f"[{self.__class__.__name__}] activated")
         self.mqttClient_ = MqttClient(self.MQTT_HOST, self.MQTT_PORT)
         self.mqttClient_.setMessageCallback(self.onMqttMessage)
         self.onExtensionStartup(ext_id)
-        self.mqttClient_.connect(self.MQTT_TOPICS)
+        self.mqttClient_.connect(self.getMqttTopics())
+
+    def getMqttTopics(self):
+        return []
 
     def on_shutdown(self):
         print(f"[{self.__class__.__name__}] shutdown")

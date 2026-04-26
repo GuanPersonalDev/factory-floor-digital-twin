@@ -3,17 +3,17 @@
 [[machines]]
 machine_id = "machine_01"
 display_name = "CNC 加工機 #1"
-usd_prim_path = "/World/Factory/Machine_01"
+usd_prim_path = "/World/Machine_01"
 location = "Zone A"
 
 [[machines]]
 machine_id = "machine_02"
 display_name = "焊接機器人 #2"
-usd_prim_path = "/World/Factory/Machine_02"
+usd_prim_path = "/World/Machine_02"
 location = "Zone B"
 
 [[machines]]
 machine_id = "machine_03"
 display_name = "輸送帶驅動機 #3"
-usd_prim_path = "/World/Factory/Machine_03"
+usd_prim_path = "/World/Machine_03"
 location = "Zone C"
