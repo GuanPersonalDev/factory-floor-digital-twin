@@ -2,18 +2,24 @@
 
 [[machines]]
 machine_id = "machine_01"
-display_name = "CNC 加工機 #1"
+display_name = "機器手臂01 #1"
 usd_prim_path = "/World/Machine_01"
 location = "Zone A"
 
 [[machines]]
 machine_id = "machine_02"
-display_name = "焊接機器人 #2"
+display_name = "機器手臂02 #2"
 usd_prim_path = "/World/Machine_02"
 location = "Zone B"
 
 [[machines]]
 machine_id = "machine_03"
-display_name = "輸送帶驅動機 #3"
+display_name = "機器手臂03 #3"
 usd_prim_path = "/World/Machine_03"
 location = "Zone C"
+
+[[machines]]
+machine_id = "machine_04"
+display_name = "機器手臂_狀態異常模擬 #4"
+usd_prim_path = "/World/Machine_04"
+location = "Zone D"

@@ -12,10 +12,10 @@ from dataclasses import dataclass, field
 class ScriptPhase:
     operation_mode: str
     # infinity when duration is None
-    duration: float | None
+    duration: float | None = None
 
 class MachineState:
-    def __init__(self, machine_id: str, script_sequence: list[ScriptPhase] | None):
+    def __init__(self, machine_id: str, script_sequence: list[ScriptPhase] | None = None):
         self._config = FactoryConfig()
         self._machine_id = machine_id
         self._script_sequence = script_sequence or []
