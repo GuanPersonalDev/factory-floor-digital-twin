@@ -43,6 +43,20 @@ class FactoryConfig:
     """
     _MACHINES_CONFIG = "machines.toml"
     _THRESHOLD_CONFIG = "thresholds.toml"
+
+    ERROR_STATE_KEY = "ERROR"
+    WARNING_STATE_KEY = "WARNING"
+    NORMAL_STATE_KEY = "NORMAL"
+
+    IDLE_MODE_KEY = "IDLE"
+    RUNNING_MODE_KEY = "RUNNING"
+    SHUTDOWN_MODE_KEY = "SHUTDOWN"
+    OFFLINE_MODE_KEY = "OFFLINE"
+
+    OPERATION_PARAM_KEY = "operation_mode"
+    TEMPERATURE_PARAM_KEY = "temperature"
+    VIBRATION_PARAM_KEY = "vibration"
+
     
     def __init__(self, config_dir: Optional[str] = None):
         self._configDir = Path(config_dir) if config_dir else _DEFAULT_CONFIG_DIR
@@ -80,10 +94,10 @@ class FactoryConfig:
         if t is None:
             raise NameError(f"Not found param threshold in {self._THRESHOLD_CONFIG} with param name : {param}")
         if value >= t["error"]:
-            return "ERROR", 2
+            return self.ERROR_STATE_KEY, 2
         if value >= t["warning"]:
-            return "WARNING", 1
-        return "NORMAL", 0
+            return self.WARNING_STATE_KEY, 1
+        return self.NORMAL_STATE_KEY, 0
 
     def getSeverityColor(self, severity: str) -> list[float]:
         colors = self._thresholds.get("severity_color", {})
