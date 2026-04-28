@@ -21,7 +21,15 @@ class MachinePublisher(Node):
         self._param_publisher_dic = {}
 
         for machine in self._config.machines:
-            machine_state = MachineState(machine.machine_id, [])
+            if machine.machine_id == "machine_04":
+                machine_state = MachineState(machine.machine_id, [
+                    ScriptPhase(operation_mode=self._config.RUNNING_MODE_KEY, duration=5),
+                    ScriptPhase(operation_mode=self._config.IDLE_MODE_KEY, duration=2),
+                    ScriptPhase(operation_mode=self._config.SHUTDOWN_MODE_KEY),
+                ])
+                pass
+            else:
+                machine_state = MachineState(machine.machine_id)
             self._machine_state_list.append(machine_state)
             for p in self._config.parameters:
                 ros_topic = machine.getRosTopic(p)
