@@ -34,7 +34,7 @@ class MachinePublisher(Node):
             for p in self._config.parameters:
                 ros_topic = machine.getRosTopic(p)
                 publisher = self.create_publisher(String, ros_topic, 10)
-                self._param_publisher_dic[p] = publisher
+                self._param_publisher_dic[(machine_state.machineId,p)] = publisher
 
         self.timer = self.create_timer(PUBLISH_INTERVAL, self.publishMachineData)
         self.get_logger().info("MachinePublisher has already activated")
@@ -48,7 +48,7 @@ class MachinePublisher(Node):
                 data[param] = value
                 msg = String()
                 msg.data = json.dumps(data)
-                publisher = self._param_publisher_dic[param]
+                publisher = self._param_publisher_dic[(machine_state.machineId, param)]
                 publisher.publish(msg)
 
                 topic = self._config.getMachineById(machine_state.machineId).getRosTopic(param)
