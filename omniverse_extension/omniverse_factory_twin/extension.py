@@ -40,7 +40,7 @@ class MachineInfo():
                 servity = tmp_servity
             
         color = config.resolveColor(operation_mode, servity)
-        print(f"[Factory Twin] {self.machine_id} operation mode: {operation_mode}, color: {color}")
+        # print(f"[Factory Twin] {self.machine_id} operation mode: {operation_mode}, color: {color}")
         opacity = config.getOpacity(operation_mode)
         result = list(color)
         result.append(opacity)
@@ -87,8 +87,7 @@ class FactoryTwinExtension(BaseMqttExtension):
         machine_id, param = parseMqttTopic(topic) 
         value = data.get(param)
         self._log.record(machine_id, data)
-        for p, v in self._machine_info_dic[machine_id].params.items():
-            print(f"{machine_id} [{p}:{v}]")
+        print(f"{machine_id} [{param}:{value}]")
 
     def updateMachineColor(self, usd_path: str, color: Gf.Vec4f):
         try:
