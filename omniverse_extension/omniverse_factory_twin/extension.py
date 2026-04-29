@@ -31,6 +31,8 @@ class MachineInfo():
         for p in config.parameters:
             if p == "operation_mode":
                 continue
+            if p not in self.params :
+                continue
             value = self.params[p]
             tmp_servity, tmp_servity_level = config.computeSeverity(p, value)
             if tmp_servity_level > servity_level:
@@ -38,6 +40,7 @@ class MachineInfo():
                 servity = tmp_servity
             
         color = config.resolveColor(operation_mode, servity)
+        print(f"[Factory Twin] {self.machine_id} operation mode: {operation_mode}, color: {color}")
         opacity = config.getOpacity(operation_mode)
         result = list(color)
         result.append(opacity)

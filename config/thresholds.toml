@@ -24,8 +24,8 @@ error = 10.0
 valid_values = ["RUNNING", "IDLE", "SHUTDOWN", "OFFLINE"]
 
 [operation_mode.override_color]
-SHUTDOWN = [0.5, 0.5, 0.0]
-OFFLINE = [0.2, 0.2, 0.2]
+SHUTDOWN = [0.4, 0.4, 0.4]
+OFFLINE = [0.1, 0.1, 0.1]
 
 [operation_mode.opacity]
 RUNNING = 1.0
