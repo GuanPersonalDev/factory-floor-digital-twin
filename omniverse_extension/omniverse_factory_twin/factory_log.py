@@ -39,6 +39,12 @@ class FactoryLog:
         if result is None:
             return None
         return result.get(self._config.OPERATION_PARAM_KEY)
+
+    def getMachineLastestTopic(self, machine_id: str, topic: str) -> dict | None:
+        if machine_id not in self._machines:
+            return None
+        log = self._machines.get(machine_id)
+        return log.getLatestByTopic(topic)
         
         
 """
