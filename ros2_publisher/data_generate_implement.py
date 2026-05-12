@@ -35,9 +35,10 @@ class EMANoise(NoiseModel):
 # Anomaly (異常層)
 class PoissonAnomaly(AnomalyModel):
     """泊松過程: 隨機觸發，修改趨勢模型的 target"""
-    def __init__(self, trigger_prob: float, delta: float, duration: int, baseline_target: float):
+    def __init__(self, trigger_prob: float, delta_warning: float, delta_error: float, duration: int, baseline_target: float):
         self._trigger_prob = trigger_prob
-        self._delta = delta
+        self._delta_warning = delta_warning
+        self._delta_error = delta_error
         self._duration = duration
         self._active = False
         self._remaining = 0
@@ -48,7 +49,8 @@ class PoissonAnomaly(AnomalyModel):
             if random.random() < self._trigger_prob:
                 self._active = True
                 self._remaining = self._duration
-                trend.target = self._baseline_target + self._delta
+                delta = random.choice([self._delta_warning, self._delta_error])
+                trend.target = self._baseline_target + delta 
         else:
             self._remaining -= 1
             if self._remaining <= 0:
