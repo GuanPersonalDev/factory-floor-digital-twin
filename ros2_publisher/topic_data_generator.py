@@ -4,6 +4,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent)) # add root to Py
 from config.config_loader import FactoryConfig
 import time
 import random
+from data_generate_implement import NewtonCoolingTrend, EMANoise, PoissonAnomaly
+from data_generate_base import SensorSimulator
 
 from dataclasses import dataclass, field
 
@@ -22,16 +24,23 @@ class MachineState:
         self._sequenct_progress = 0
         self._current_phase_start_time: float = time.time()
         self._is_terminated: bool = False
-        self._param_range: dict[str, tuple[float, float]] = {
-            self._config.TEMPERATURE_PARAM_KEY: (60.0, 95.0),
-            self._config.VIBRATION_PARAM_KEY: (0.1, 5.0)
+        self._param_simulator: dict[str, SensorSimulator] = {
+            self._config.TEMPERATURE_PARAM_KEY: SensorSimulator(
+                trend= NewtonCoolingTrend(idle=25.0, target=65.0, tau=120.0),
+                noise= EMANoise(alpha=1.0, sigma=0.3, initial= 25.0),
+                anomaly= PoissonAnomaly(trigger_prob=0.001, delta=20.0, duration=60, baseline_target=65.0)
+            ),
+            self._config.VIBRATION_PARAM_KEY: SensorSimulator(
+                trend= NewtonCoolingTrend(idle= 0.5, target=0.5, tau=1.0),
+                noise = EMANoise(alpha=0.08, sigma=0.08, initial= 0.5),
+                anomaly= PoissonAnomaly(trigger_prob= 0.0005, delta=0.4, duration=45, baseline_target= 0.5)
+            )
         }
 
     @property
     def machineId(self) -> str:
         return self._machine_id
         
-
     def getCurrentMode(self) -> str | None:
         if len(self._script_sequence) < 1:
             return self._config.RUNNING_MODE_KEY
@@ -66,8 +75,7 @@ class MachineState:
 
         if mode == self._config.SHUTDOWN_MODE_KEY or mode == self._config.OFFLINE_MODE_KEY:
             return None
-        min_value, max_value= self._param_range[param]
-        value = round(random.uniform(min_value, max_value), 2)
+        value = self._param_simulator[param].next_value()
         return value
 
     def getAllTopics(self) -> dict:
