@@ -3,7 +3,7 @@
 [[machines]]
 machine_id = "machine_01"
 display_name = "機器手臂01 #1"
-usd_prim_path = "/World/Machine_01"
+usd_prim_path = "/World/Samples/Welding_Assembly_Animated_Adjust/Welding_Assembly_Animated_Export/root/RobotPedestal_U20__U23_3/Link1/KR_U20_120_U20_R2500_U20_pro_U20__U23_3"
 location = "Zone A"
 
 [[machines]]

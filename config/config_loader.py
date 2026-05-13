@@ -27,11 +27,11 @@ class MachineConfig:
         self.location = data["location"]
 
     def getRosTopic(self, param: str) -> str:
-        from config.topic_resolver import getRos2Topic
+        from topic_resolver import getRos2Topic
         return getRos2Topic(self.machine_id, param)
 
     def getMqttTopic(self, param: str) -> str:
-        from config.topic_resolver import getMqttTopic
+        from topic_resolver import getMqttTopic
         return getMqttTopic(self.machine_id, param)
 
     def __repr__(self):
@@ -99,17 +99,22 @@ class FactoryConfig:
             return self.WARNING_STATE_KEY, 1
         return self.NORMAL_STATE_KEY, 0
 
-    def getSeverityColor(self, severity: str) -> list[float]:
+    def getSeverityColor(self, severity: str) -> tuple[float, float, float]:
         colors = self._thresholds.get("severity_color", {})
-        return colors.get(severity, [1.0, 1.0, 1.0])
+        color = colors.get(severity, [1.0, 1.0, 1.0])
+        return tuple(color)
 
-    def resolveColor(self, operation_mode: str, severity: str) -> list[float]:
+    def resolveColor(self, operation_mode: str, severity: str) -> tuple[float, float, float, float]:
+        opacity = self.getOpacity(operation_mode)
+
         op = self._thresholds.get("operation_mode", {})
         override = op.get("override_color", {})
 
         if operation_mode in override:
-            return override[operation_mode]
-        return self.getSeverityColor(severity)
+            override_color = override[operation_mode]
+            return (*override_color, opacity)
+        severity_color = self.getSeverityColor(severity)
+        return (*severity_color, opacity)
 
     def getOpacity(self, operation_mode: str) -> float:
         op = self._thresholds.get("operation_mode", {})
@@ -156,9 +161,10 @@ if __name__ == "__main__":
     ]
 
     for param, value in test_cases:
-        severity = config.computeSeverity(param, value)
+        severity, severity_level = config.computeSeverity(param, value)
         color = config.getSeverityColor(severity)
-        print(f"\t{param} = {value:5.1f} -> {severity:7s} color={color}")
+        color_str = "({:.1f}, {:.1f}, {:.1f})".format(*color)
+        print(f"\t{param} = {value:5.1f} -> {severity:7s} color={color_str}")
 
     print("\n--- Display color test ---")
     resolve_cases = [
@@ -171,5 +177,4 @@ if __name__ == "__main__":
     ]
     for mode, severity in resolve_cases:
         color = config.resolveColor(mode, severity)
-        opacity = config.getOpacity(mode)
-        print(f"\tmode={mode:8s} severity={severity:7s} -> color={color} opacity={opacity}")
+        print(f"\tmode={mode:8s} severity={severity:7s} -> color={color}")
