@@ -6,16 +6,13 @@ from config.topic_resolver import parseMqttTopic, getAllMachinesMqttPattern
 from omniverse_extension.omniverse_factory_twin.factory_log import FactoryLog
 
 import omni.kit.app
-from pxr import Sdf, Gf, UsdGeom
+from pxr import Sdf, Gf, Usd, UsdGeom, UsdShade
 import omni.usd
+from omni.usd import StageEventType
 import threading
 from .base_extension import BaseMqttExtension
+from omniverse_extension.Tool.generate_material import createMaterial, removeMaterial
 
-# MACHINE_USD_PATHS = {
-#     "factory/machine_01/status": "/World/Machine_01",
-#     "factory/machine_02/status": "/World/Machine_02",
-#     "factory/machine_03/status": "/World/Machine_03",
-# }
 
 class MachineInfo():
     def __init__(self, machine_id):
@@ -51,6 +48,7 @@ class FactoryTwinExtension(BaseMqttExtension):
 
     MQTT_BROKER_HOST = "localhost"
     MQTT_BROKER_PORT = 1883
+    MATERIAL_ROOT = "/World/StatusMaterials"
 
     def onExtensionStartup(self, ext_id):
         self._config = FactoryConfig()
@@ -59,11 +57,33 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._updateSub = omni.kit.app.get_app().get_update_event_stream().create_subscription_to_pop(
             self.onUpdate, name="factory_twin_update"
         )
+        self._stage_event_sub = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
+            self.onStageEvent,
+            name="factory twin stage ready"
+        )
         self._machine_info_dic = {}
         for machine in self._config.machines:
             self._machine_info_dic[machine.machine_id] = MachineInfo(machine.machine_id)
         self._log = FactoryLog()
         print("[Factory Twin] Extension activate")
+    
+    def onStageEvent(self, event):
+        if event.type == int(StageEventType.OPENED):
+            self.buildMaterials()
+            self._stage_event_sub = None
+
+    def buildMaterials(self):
+        stage = omni.usd.get_context().get_stage()
+        self._material_map: dict[tuple, UsdShade.Material] = {}
+
+        for operation_mode in self._config.operation_mode:
+            for severity in self._config.severityKeys:
+                color = self._config.resolveColor(operation_mode, severity)
+                if color in self._material_map:
+                    continue
+                mat_name = f"Mat_{operation_mode}_{severity}"
+                mat = createMaterial(stage, self.MATERIAL_ROOT, mat_name, color)
+                self._material_map[color] = mat
 
     def getMqttTopics(self):
         return getAllMachinesMqttPattern()
@@ -79,6 +99,9 @@ class FactoryTwinExtension(BaseMqttExtension):
 
     def onExtensionShutdown(self):
         self._updateSub = None
+        self._stage_event_sub = None
+        stage = omni.usd.get_context().get_stage()
+        removeMaterial(stage, self.MATERIAL_ROOT)
         print("[Factory Twin] Extension end")
 
     # Called by base class
@@ -96,10 +119,19 @@ class FactoryTwinExtension(BaseMqttExtension):
             if not prim.IsValid():
                 print(f"[Factory Twin] Not found prim: {usd_path}")
                 return
-            gprim = UsdGeom.Gprim(prim)
-            gprim.GetDisplayColorAttr().Set(
-                [(color[0], color[1], color[2])]
-            )
-            gprim.GetDisplayOpacityAttr().Set([color[3]])
+
+            print(f"[Factory Twin] Found prim: {usd_path}")
+            rgb = [(color[0], color[1], color[2])]
+            opacity = [color[3]]
+            found = False
+            for descendant in Usd.PrimRange(prim):
+                if descendant.IsA(UsdGeom.Gprim):
+                    gprim = UsdGeom.Gprim(descendant)
+                    print(f"[Factory Twin] Apply color to prim child : {gprim.GetPath()}")
+                    gprim.GetDisplayColorAttr().Set(rgb)
+                    gprim.GetDisplayOpacityAttr().Set(opacity)
+                    found = True
+            if not found:
+                print(f"[Factory Twin] No Gprim found under: {usd_path}")
         except Exception as e:
             print(f"[Factory Twin] Update color error: {usd_path} -> {e}")

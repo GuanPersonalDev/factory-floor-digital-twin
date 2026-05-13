@@ -132,6 +132,10 @@ class FactoryConfig:
     @property
     def operation_mode(self) -> list[str]:
         return self._thresholds.get("operation_mode",{}).get("valid_values", {})
+
+    @property
+    def severityKeys(self) -> list[str]:
+        return [self.NORMAL_STATE_KEY, self.WARNING_STATE_KEY, self.ERROR_STATE_KEY]
     
     def __repr__(self):
         return f"Factory config with {len(self._machines)} machines"
@@ -146,6 +150,10 @@ if __name__ == "__main__":
         print(f"\t[{m.machine_id}] {m.display_name}")
         print(f"\tUSD: {m.usd_prim_path}")
         print(f"\tMQTT temperature: {m.getMqttTopic('temperature')}")
+
+    print("\n--- All severity list ---")
+    for s in config.severityKeys:
+        print(s)
 
     print("\n--- Parameter list ---")
     for p in config.parameters:
