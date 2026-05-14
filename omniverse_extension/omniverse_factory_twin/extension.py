@@ -18,7 +18,7 @@ class MachineInfo():
     def __init__(self, machine_id):
         self.machine_id = machine_id
 
-    def calc_color(self, config :FactoryConfig, log :FactoryLog) -> list[float]:
+    def calc_color(self, config :FactoryConfig, log :FactoryLog) -> tuple[float, float, float, float]:
         operation_mode = log.getLatestMode(self.machine_id)
         if operation_mode == None:
             operation_mode = config.OFFLINE_MODE_KEY
@@ -38,10 +38,7 @@ class MachineInfo():
             
         color = config.resolveColor(operation_mode, servity)
         # print(f"[Factory Twin] {self.machine_id} operation mode: {operation_mode}, color: {color}")
-        opacity = config.getOpacity(operation_mode)
-        result = list(color)
-        result.append(opacity)
-        return result
+        return color
 
 
 class FactoryTwinExtension(BaseMqttExtension):
@@ -54,9 +51,10 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._config = FactoryConfig()
         self._pendingUpdates = {}
         self._lock = threading.Lock()
-        self._updateSub = omni.kit.app.get_app().get_update_event_stream().create_subscription_to_pop(
-            self.onUpdate, name="factory_twin_update"
-        )
+        self._material_map: dict[tuple, UsdShade.Material] = {}
+        self._collection_map: dict[str, Usd.CollectionAPI] = {}
+        self._updateSub = None
+        self._is_building = False
         self._stage_event_sub = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
             self.onStageEvent,
             name="factory twin stage ready"
@@ -65,16 +63,47 @@ class FactoryTwinExtension(BaseMqttExtension):
         for machine in self._config.machines:
             self._machine_info_dic[machine.machine_id] = MachineInfo(machine.machine_id)
         self._log = FactoryLog()
+
+        stage = omni.usd.get_context().get_stage()
+        print(f"[Factory Twin] Stage: {stage}")
+        print(f"[Factory Twin] Stage is valid: {stage is not None}")
+        if stage:
+            self.initSource()
+        else:
+            print(f"[Factory Twin] State not exist, waiting for ASSETS_LOADED")
+
         print("[Factory Twin] Extension activate")
+
+    def initSource(self):
+        self._is_building = True
+        try:
+            self.buildMaterials()
+            print(f"[Factory Twin] Material map count: {len(self._material_map)}")
+            self.buildCollections()
+            print(f"[Factory Twin] Collection map count: {len(self._collection_map)}")
+            self.startUpdate()           
+        finally:
+            self._is_building = False
+
+    def startUpdate(self):
+         self._updateSub = omni.kit.app.get_app().get_update_event_stream().create_subscription_to_pop(
+            self.onUpdate, name="factory_twin_update"
+        )
     
     def onStageEvent(self, event):
         if event.type == int(StageEventType.OPENED):
-            self.buildMaterials()
-            self._stage_event_sub = None
+            if self._is_building:
+                return
+            self._updateSub = None
+            stage = omni.usd.get_context().get_stage()
+            removeMaterial(stage, self.MATERIAL_ROOT)
+            self._material_map = {}
+            self._collection_map = {}
+            self.initSource()
 
     def buildMaterials(self):
         stage = omni.usd.get_context().get_stage()
-        self._material_map: dict[tuple, UsdShade.Material] = {}
+        print(f"[Factory Twin] building materials stage: {stage}")
 
         for operation_mode in self._config.operation_mode:
             for severity in self._config.severityKeys:
@@ -82,8 +111,27 @@ class FactoryTwinExtension(BaseMqttExtension):
                 if color in self._material_map:
                     continue
                 mat_name = f"Mat_{operation_mode}_{severity}"
+                print(f"[Factory Twin] Ready to create material: {mat_name} color={color}")
                 mat = createMaterial(stage, self.MATERIAL_ROOT, mat_name, color)
+                print(f"[Factory Twin] Created material: {mat}")
                 self._material_map[color] = mat
+        print(f"[Factory Twin] Created {len(self._material_map)} materials")
+    
+    def buildCollections(self):
+        stage = omni.usd.get_context().get_stage()
+
+        for machine in self._config.machines:
+            prim_path = machine.usd_prim_path
+            root_prim = stage.GetPrimAtPath(prim_path)
+            if not root_prim.IsValid():
+                print(f"[Factory Twin] Build collection fail, not found prim : {prim_path}")
+                continue
+            collection_api = Usd.CollectionAPI.Apply(root_prim, "statusOverride")
+            collection_api.CreateIncludesRel().SetTargets([Sdf.Path(prim_path)])
+            collection_api.CreateExpansionRuleAttr().Set("expandPrims")
+
+            self._collection_map[machine.machine_id] = collection_api
+            print(f"[Factory Twin] Build collection end : {prim_path}")
 
     def getMqttTopics(self):
         return getAllMachinesMqttPattern()
@@ -94,15 +142,26 @@ class FactoryTwinExtension(BaseMqttExtension):
         for machine_id, machine_info in updates.items():
             machine = self._config.getMachineById(machine_id)
             color = machine_info.calc_color(self._config, self._log)
-            
-            self.updateMachineColor(machine.usd_prim_path, color)
+            self.updateMachineColor(machine.machine_id, color)
 
     def onExtensionShutdown(self):
         self._updateSub = None
         self._stage_event_sub = None
         stage = omni.usd.get_context().get_stage()
+        self.removeCollections()
         removeMaterial(stage, self.MATERIAL_ROOT)
         print("[Factory Twin] Extension end")
+
+    def removeCollections(self):
+        stage = omni.usd.get_context().get_stage()
+        for machine in self._config.machines:
+            root_prim = stage.GetPrimAtPath(machine.usd_prim_path)
+            if not root_prim.IsValid():
+                continue
+            binding_api = UsdShade.MaterialBindingAPI(root_prim)
+            binding_api.UnbindCollectionBinding("statusOverride")
+
+            root_prim.RemoveAPI(Usd.CollectionAPI, "statusOverride")
 
     # Called by base class
     def onMqttMessage(self, topic: str, data: dict):
@@ -112,26 +171,30 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._log.record(machine_id, data)
         print(f"{machine_id} [{param}:{value}]")
 
-    def updateMachineColor(self, usd_path: str, color: Gf.Vec4f):
+    def updateMachineColor(self, machine_id: str, color: tuple):
         try:
-            stage = omni.usd.get_context().get_stage()
-            prim = stage.GetPrimAtPath(usd_path)
-            if not prim.IsValid():
-                print(f"[Factory Twin] Not found prim: {usd_path}")
+            collection_api = self._collection_map[machine_id]
+            if collection_api is None:
+                print(f"[Factory Twin] Not found collection : {machine_id}")
                 return
+            material = self._material_map.get(color)
+            if material is None:
+                print(f"[Factory Twin] Not found material : {color}")
+                return
+            root_prim = collection_api.GetPrim()
+            binding_api = UsdShade.MaterialBindingAPI.Apply(root_prim)
+            binding_rel = binding_api.GetCollectionBindingRel("statusOverride")
+            binding_rel.SetTargets([
+                collection_api.GetCollectionPath(),
+                material.GetPath()
+            ])
 
-            print(f"[Factory Twin] Found prim: {usd_path}")
-            rgb = [(color[0], color[1], color[2])]
-            opacity = [color[3]]
-            found = False
-            for descendant in Usd.PrimRange(prim):
-                if descendant.IsA(UsdGeom.Gprim):
-                    gprim = UsdGeom.Gprim(descendant)
-                    print(f"[Factory Twin] Apply color to prim child : {gprim.GetPath()}")
-                    gprim.GetDisplayColorAttr().Set(rgb)
-                    gprim.GetDisplayOpacityAttr().Set(opacity)
-                    found = True
-            if not found:
-                print(f"[Factory Twin] No Gprim found under: {usd_path}")
+            UsdShade.MaterialBindingAPI.SetMaterialBindingStrength(
+                binding_rel,
+                UsdShade.Tokens.strongerThanDescendants
+            )
+
+            print(f"[Factory Twin] {machine_id} -> Material {color}")
         except Exception as e:
-            print(f"[Factory Twin] Update color error: {usd_path} -> {e}")
+            pass
+            print(f"[Factory Twin] Update color error: {machine_id} -> {e}")
