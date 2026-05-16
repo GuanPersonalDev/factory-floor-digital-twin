@@ -13,6 +13,7 @@ import omni.usd
 from omni.usd import StageEventType
 import threading
 from omniverse_extension.Tool.generate_material import createMaterial, removeMaterial
+from omniverse_extension.Tool.debug import DebugLogger
 import carb.profiler
 
 # my tools
@@ -50,8 +51,11 @@ class FactoryTwinExtension(BaseMqttExtension):
     MQTT_BROKER_HOST = "localhost"
     MQTT_BROKER_PORT = 1883
     MATERIAL_ROOT = "/World/StatusMaterials"
+    ENABLE_LOG = False
 
     def onExtensionStartup(self, ext_id):
+        self._logger = DebugLogger()
+        self._logger.enable = self.ENABLE_LOG
         self._config = FactoryConfig()
         self._pendingUpdates = {}
         self._lock = threading.Lock()
@@ -69,22 +73,22 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._log = FactoryLog()
 
         stage = omni.usd.get_context().get_stage()
-        print(f"[Factory Twin] Stage: {stage}")
-        print(f"[Factory Twin] Stage is valid: {stage is not None}")
+        self._logger.log(f"[Factory Twin] Stage: {stage}")
+        self._logger.log(f"[Factory Twin] Stage is valid: {stage is not None}")
         if stage:
             self.initSource()
         else:
-            print(f"[Factory Twin] State not exist, waiting for ASSETS_LOADED")
+            self._logger.log(f"[Factory Twin] State not exist, waiting for ASSETS_LOADED")
 
-        print("[Factory Twin] Extension activate")
+        self._logger.log("[Factory Twin] Extension activate")
 
     def initSource(self):
         self._is_building = True
         try:
             self.buildMaterials()
-            print(f"[Factory Twin] Material map count: {len(self._material_map)}")
+            self._logger.log(f"[Factory Twin] Material map count: {len(self._material_map)}")
             self.buildCollections()
-            print(f"[Factory Twin] Collection map count: {len(self._collection_map)}")
+            self._logger.log(f"[Factory Twin] Collection map count: {len(self._collection_map)}")
             self.startUpdate()           
         finally:
             self._is_building = False
@@ -107,7 +111,7 @@ class FactoryTwinExtension(BaseMqttExtension):
 
     def buildMaterials(self):
         stage = omni.usd.get_context().get_stage()
-        print(f"[Factory Twin] building materials stage: {stage}")
+        self._logger.log(f"[Factory Twin] building materials stage: {stage}")
 
         for operation_mode in self._config.operation_mode:
             for severity in self._config.severityKeys:
@@ -115,11 +119,11 @@ class FactoryTwinExtension(BaseMqttExtension):
                 if color in self._material_map:
                     continue
                 mat_name = f"Mat_{operation_mode}_{severity}"
-                print(f"[Factory Twin] Ready to create material: {mat_name} color={color}")
+                self._logger.log(f"[Factory Twin] Ready to create material: {mat_name} color={color}")
                 mat = createMaterial(stage, self.MATERIAL_ROOT, mat_name, color)
-                print(f"[Factory Twin] Created material: {mat}")
+                self._logger.log(f"[Factory Twin] Created material: {mat}")
                 self._material_map[color] = mat
-        print(f"[Factory Twin] Created {len(self._material_map)} materials")
+        self._logger.log(f"[Factory Twin] Created {len(self._material_map)} materials")
     
     def buildCollections(self):
         stage = omni.usd.get_context().get_stage()
@@ -128,14 +132,14 @@ class FactoryTwinExtension(BaseMqttExtension):
             prim_path = machine.usd_prim_path
             root_prim = stage.GetPrimAtPath(prim_path)
             if not root_prim.IsValid():
-                print(f"[Factory Twin] Build collection fail, not found prim : {prim_path}")
+                self._logger.log(f"[Factory Twin] Build collection fail, not found prim : {prim_path}")
                 continue
             collection_api = Usd.CollectionAPI.Apply(root_prim, "statusOverride")
             collection_api.CreateIncludesRel().SetTargets([Sdf.Path(prim_path)])
             collection_api.CreateExpansionRuleAttr().Set("expandPrims")
 
             self._collection_map[machine.machine_id] = collection_api
-            print(f"[Factory Twin] Build collection end : {prim_path}")
+            self._logger.log(f"[Factory Twin] Build collection end : {prim_path}")
 
     def getMqttTopics(self):
         return getAllMachinesMqttPattern()
@@ -169,7 +173,7 @@ class FactoryTwinExtension(BaseMqttExtension):
         stage = omni.usd.get_context().get_stage()
         self.removeCollections()
         removeMaterial(stage, self.MATERIAL_ROOT)
-        print("[Factory Twin] Extension end")
+        self._logger.log("[Factory Twin] Extension end")
 
     def removeCollections(self):
         stage = omni.usd.get_context().get_stage()
@@ -184,21 +188,21 @@ class FactoryTwinExtension(BaseMqttExtension):
 
     # Called by base class
     def onMqttMessage(self, topic: str, data: dict):
-        print(f"[Factory Twin] get message: {topic} -> {data}")
+        self._logger.log(f"[Factory Twin] get message: {topic} -> {data}")
         machine_id, param = parseMqttTopic(topic) 
         value = data.get(param)
         self._log.record(machine_id, data)
-        print(f"{machine_id} [{param}:{value}]")
+        self._logger.log(f"{machine_id} [{param}:{value}]")
 
     def updateMachineColor(self, machine_id: str, color: tuple):
         try:
             collection_api = self._collection_map[machine_id]
             if collection_api is None:
-                print(f"[Factory Twin] Not found collection : {machine_id}")
+                self._logger.log(f"[Factory Twin] Not found collection : {machine_id}")
                 return
             material = self._material_map.get(color)
             if material is None:
-                print(f"[Factory Twin] Not found material : {color}")
+                self._logger.log(f"[Factory Twin] Not found material : {color}")
                 return
             root_prim = collection_api.GetPrim()
             binding_api = UsdShade.MaterialBindingAPI.Apply(root_prim)
@@ -213,7 +217,7 @@ class FactoryTwinExtension(BaseMqttExtension):
                 UsdShade.Tokens.strongerThanDescendants
             )
 
-            print(f"[Factory Twin] {machine_id} -> Material {color}")
+            self._logger.log(f"[Factory Twin] {machine_id} -> Material {color}")
         except Exception as e:
+            self._logger.log(f"[Factory Twin] Update color error: {machine_id} -> {e}")
             pass
-            print(f"[Factory Twin] Update color error: {machine_id} -> {e}")

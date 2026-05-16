@@ -3,6 +3,7 @@ import json
 import queue
 import threading
 from typing import Callable, Optional
+from omniverse_extension.Tool.debug import DebugLogger
 
 class MqttClient:
     def __init__(self, host: str, port: int):
@@ -11,6 +12,8 @@ class MqttClient:
         self.port_ = port
         self.client_ = None
         self._message_queue: queue.Queue = queue.Queue()
+        self._logger = DebugLogger()
+        self._logger.enable = False
        
     def connect(self, topics: list[str]):
         try:
@@ -26,23 +29,23 @@ class MqttClient:
         if self.client_:
             self.client_.loop_stop()
             self.client_.disconnect()
-            print("[Mqtt Client] Disconnect end")
+            self._logger.log("[Mqtt Client] Disconnect end")
 
     def onConnect(self, client, topics: list[str], reason_code):
         if reason_code == 0:
-            print(f"[Mqtt Client] Connect success: {self.host_}:{self.port_}")
+            self._logger.log(f"[Mqtt Client] Connect success: {self.host_}:{self.port_}")
             for topic in topics:
                 client.subscribe(topic)
-                print(f"[Mqtt Client] Subscribe: {topic}")
+                self._logger.log(f"[Mqtt Client] Subscribe: {topic}")
         else:
-            print(f"[Mqtt Client] Connect fail: {reason_code}")
+            self._logger.log(f"[Mqtt Client] Connect fail: {reason_code}")
 
     def onMessage(self, client, userdata, msg):
         try:
             data = json.loads(msg.payload.decode())
             self._message_queue.put((msg.topic, data))
         except json.JSONDecodeError as e:
-            print(f"[Mqtt Client] Json parse error: {e}")
+            self._logger.log(f"[Mqtt Client] Json parse error: {e}")
         except Exception as e:
             print(f"[Mqtt Client] Message process error: {e}")
     
