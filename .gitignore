@@ -227,3 +227,5 @@ __pycache__/
 .vscode
 mosquitto/data/ 
 mosquitto/log/
+
+external_assets/USD_Explorer_Sample_NVD@10011/
