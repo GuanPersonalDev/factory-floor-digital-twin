@@ -51,7 +51,7 @@ class FactoryLog:
 Test code
 """
 
-def test_machine_log():
+def testMachineLog():
     print("=== Machine log smoke test ===")
     log = MachineLog("machine_01")
     assert log.getLatestByTopic("operation_mode") is None
@@ -82,7 +82,7 @@ def test_machine_log():
 
     pass
 
-def test_factory_log():
+def testFactoryLog():
     print("\n=== Factory log smoke test ===")
     factory = FactoryLog()
     
@@ -108,6 +108,6 @@ def test_factory_log():
     pass
 
 if __name__ == "__main__":
-    test_machine_log()
-    test_factory_log()
+    testMachineLog()
+    testFactoryLog()
     print("\nAll test passed")
