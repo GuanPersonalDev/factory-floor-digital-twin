@@ -22,6 +22,7 @@ from .base_extension import BaseMqttExtension
 class MachineInfo():
     def __init__(self, machine_id):
         self.machine_id = machine_id
+        self.current_color: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
 
     def calc_color(self, config :FactoryConfig, log :FactoryLog) -> tuple[float, float, float, float]:
         operation_mode = log.getLatestMode(self.machine_id)
@@ -44,6 +45,12 @@ class MachineInfo():
         color = config.resolveColor(operation_mode, servity)
         # print(f"[Factory Twin] {self.machine_id} operation mode: {operation_mode}, color: {color}")
         return color
+
+    def record_color(self, color: tuple[float, float, float, float]):
+        self.current_color = color
+
+    def is_same_color(self, color: tuple[float, float, float, float]) -> bool:
+        return self.current_color == color
 
 
 class FactoryTwinExtension(BaseMqttExtension):
@@ -159,6 +166,11 @@ class FactoryTwinExtension(BaseMqttExtension):
             carb.profiler.begin(1, "Digital Twin Extension: calc color")
             color = machine_info.calc_color(self._config, self._log)
             carb.profiler.end(1)
+
+            if machine_info.is_same_color(color):
+                continue
+            machine_info.record_color(color)
+
             carb.profiler.begin(1, "Digital Twin Extension: update color")
             self.updateMachineColor(machine.machine_id, color)
             carb.profiler.end(1)

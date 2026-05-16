@@ -3,5 +3,5 @@ class DebugLogger:
         self.enable = True
 
     def log(self, msg: str):
-        if self._enable:
+        if self.enable:
             print(msg)
