@@ -9,9 +9,16 @@ class BaseMqttExtension(omni.ext.IExt):
     def on_startup(self, ext_id):
         print(f"[{self.__class__.__name__}] activated")
         self.mqttClient_ = MqttClient(self.MQTT_HOST, self.MQTT_PORT)
-        self.mqttClient_.setMessageCallback(self.onMqttMessage)
         self.onExtensionStartup(ext_id)
         self.mqttClient_.connect(self.getMqttTopics())
+
+        self._update_sub = omni.kit.app.get_app().get_update_event_stream().create_subscription_to_pop(
+            self._on_update, name="mqtt_poll"
+        )
+    
+    def _on_update(self, event):
+        for topic, data in self.mqttClient_.poll():
+            self.onMqttMessage(topic, data)
 
     def getMqttTopics(self):
         return []

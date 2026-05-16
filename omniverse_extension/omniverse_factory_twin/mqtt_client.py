@@ -1,5 +1,7 @@
 import paho.mqtt.client as mqtt
 import json
+import queue
+import threading
 from typing import Callable, Optional
 
 class MqttClient:
@@ -8,11 +10,8 @@ class MqttClient:
         self.host_ = host
         self.port_ = port
         self.client_ = None
-        self.messageCallback_: Optional[Callable] = None
-        
-    def setMessageCallback(self, callback: Callable):
-        self.messageCallback_ = callback
-        
+        self._message_queue: queue.Queue = queue.Queue()
+       
     def connect(self, topics: list[str]):
         try:
             self.client_ = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
@@ -41,9 +40,17 @@ class MqttClient:
     def onMessage(self, client, userdata, msg):
         try:
             data = json.loads(msg.payload.decode())
-            if self.messageCallback_:
-                self.messageCallback_(msg.topic, data)
+            self._message_queue.put((msg.topic, data))
         except json.JSONDecodeError as e:
             print(f"[Mqtt Client] Json parse error: {e}")
         except Exception as e:
             print(f"[Mqtt Client] Message process error: {e}")
+    
+    def poll(self) -> list[tuple[str, dict]]:
+        messages = []
+        try:
+            while True:
+                messages.append(self._message_queue.get_nowait())
+        except queue.Empty:
+            pass
+        return messages

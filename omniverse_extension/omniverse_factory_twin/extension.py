@@ -1,18 +1,22 @@
+# sys and config
 import sys
 from pathlib import Path 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent)) # add root to Python search path due to I wanna load config.config_loader
 from config.config_loader import FactoryConfig
 from config.topic_resolver import parseMqttTopic, getAllMachinesMqttPattern
-from omniverse_extension.omniverse_factory_twin.factory_log import FactoryLog
 
+# omniverse lib
+from omniverse_extension.omniverse_factory_twin.factory_log import FactoryLog
 import omni.kit.app
 from pxr import Sdf, Gf, Usd, UsdGeom, UsdShade
 import omni.usd
 from omni.usd import StageEventType
 import threading
-from .base_extension import BaseMqttExtension
 from omniverse_extension.Tool.generate_material import createMaterial, removeMaterial
+import carb.profiler
 
+# my tools
+from .base_extension import BaseMqttExtension
 
 class MachineInfo():
     def __init__(self, machine_id):
@@ -137,12 +141,27 @@ class FactoryTwinExtension(BaseMqttExtension):
         return getAllMachinesMqttPattern()
 
     def onUpdate(self, event):
+        carb.profiler.begin(1, "Digital Twin Extension: on_update")
+
         with self._lock:
+            carb.profiler.begin(1, "Digital Twin Extension: clone info dic")
             updates = dict(self._machine_info_dic)
+            carb.profiler.end(1)
+
+        carb.profiler.begin(1, "Digital Twin Extension: for loop on update items")
         for machine_id, machine_info in updates.items():
             machine = self._config.getMachineById(machine_id)
+
+            carb.profiler.begin(1, "Digital Twin Extension: calc color")
             color = machine_info.calc_color(self._config, self._log)
+            carb.profiler.end(1)
+            carb.profiler.begin(1, "Digital Twin Extension: update color")
             self.updateMachineColor(machine.machine_id, color)
+            carb.profiler.end(1)
+
+        carb.profiler.end(1)
+
+        carb.profiler.end(1)
 
     def onExtensionShutdown(self):
         self._updateSub = None
