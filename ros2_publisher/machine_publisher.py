@@ -21,7 +21,7 @@ class MachinePublisher(Node):
         self._param_publisher_dic = {}
 
         for machine in self._config.machines:
-            if machine.machine_id == "machine_04":
+            if machine.machine_id == "machine_05":
                 machine_state = MachineState(machine.machine_id, [
                     ScriptPhase(operation_mode=self._config.RUNNING_MODE_KEY, duration=5),
                     ScriptPhase(operation_mode=self._config.IDLE_MODE_KEY, duration=2),

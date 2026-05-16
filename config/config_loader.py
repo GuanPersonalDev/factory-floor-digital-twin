@@ -24,14 +24,13 @@ class MachineConfig:
         self.machine_id = data["machine_id"]
         self.display_name = data["display_name"]
         self.usd_prim_path = data["usd_prim_path"]
-        self.location = data["location"]
 
     def getRosTopic(self, param: str) -> str:
-        from topic_resolver import getRos2Topic
+        from config.topic_resolver import getRos2Topic
         return getRos2Topic(self.machine_id, param)
 
     def getMqttTopic(self, param: str) -> str:
-        from topic_resolver import getMqttTopic
+        from config.topic_resolver import getMqttTopic
         return getMqttTopic(self.machine_id, param)
 
     def __repr__(self):
