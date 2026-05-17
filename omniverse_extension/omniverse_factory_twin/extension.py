@@ -16,6 +16,7 @@ from omniverse_extension.tool.debug import DebugLogger
 # factory project
 from omniverse_extension.omniverse_factory_twin.factory_log import FactoryLog
 from omniverse_extension.omniverse_factory_twin.prim_render_manager import PrimRenderManager
+from omniverse_extension.omniverse_factory_twin.view.hud_panel_widget import HudPanelWidget
 
 class FactoryTwinExtension(BaseMqttExtension):
 
@@ -28,6 +29,7 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._logger.enable = self._config.ENABLE_LOG
         self._log = FactoryLog()
         self._prim_render_manager = PrimRenderManager(self._config, self._log)
+        self._hud = HudPanelWidget()
 
         self._updateSub = None
         self._stage_event_sub = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
