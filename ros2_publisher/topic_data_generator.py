@@ -38,10 +38,10 @@ class MachineState:
         }
 
     @property
-    def machineId(self) -> str:
+    def machine_id(self) -> str:
         return self._machine_id
         
-    def getCurrentMode(self) -> str | None:
+    def get_current_mode(self) -> str | None:
         if len(self._script_sequence) < 1:
             return self._config.RUNNING_MODE_KEY
 
@@ -61,13 +61,13 @@ class MachineState:
         if elapsed >= current_phase.duration:
             self._sequenct_progress += 1
             self._current_phase_start_time = time.time()
-            return self.getCurrentMode()
+            return self.get_current_mode()
         
         return current_phase.operation_mode
 
 
-    def getParamValue(self, param: str):
-        mode = self.getCurrentMode()
+    def get_param_value(self, param: str):
+        mode = self.get_current_mode()
         if mode is None:
             return None
         if param == self._config.OPERATION_PARAM_KEY:
@@ -78,16 +78,16 @@ class MachineState:
         value = self._param_simulator[param].next_value()
         return value
 
-    def getAllTopics(self) -> dict:
+    def get_all_topics(self) -> dict:
         result = {}
         first_check = self._config.OPERATION_PARAM_KEY
-        operation_mode = self.getParamValue(first_check)
+        operation_mode = self.get_param_value(first_check)
         if operation_mode is not None:
             result[first_check] = operation_mode
             for param in self._config.parameters:
                 if param == first_check:
                     continue
-                param_value = self.getParamValue(param)
+                param_value = self.get_param_value(param)
                 if param_value is not None:
                     result[param] = param_value
         return result
