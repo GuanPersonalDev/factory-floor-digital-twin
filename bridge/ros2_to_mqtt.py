@@ -17,24 +17,24 @@ class Ros2MqttBridge(Node):
 
         # init MQTT client
         self._mqttClient = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-        self.connectMqtt()
+        self.connect_mqtt()
         self._mqttClient.loop_start()
         self._config = FactoryConfig()
 
         for param in self._config.parameters:
             for machine in self._config.machines:
-                ros2_topic = machine.getRosTopic(param)
-                mqtt_topic = machine.getMqttTopic(param)
+                ros2_topic = machine.get_ros_topic(param)
+                mqtt_topic = machine.get_mqtt_topic(param)
                 self.create_subscription(
                     String,
                     ros2_topic,
-                    lambda msg, t=mqtt_topic: self.onRos2Message(msg, t),
+                    lambda msg, t=mqtt_topic: self.on_ros2_message(msg, t),
                     10
                 )
 
         self.get_logger().info("Ros2MqttBridge has already activated")
 
-    def connectMqtt(self):
+    def connect_mqtt(self):
         # connect to MQTT Broker with retry
         retryCount = 0
         maxRetries = 5
@@ -50,7 +50,7 @@ class Ros2MqttBridge(Node):
         raise RuntimeError("Connect to MQTT Broker fail")
                 
 
-    def onRos2Message(self, msg, mqtt_topic):
+    def on_ros2_message(self, msg, mqtt_topic):
         # get message from ROS2 and send to MQTT
         try:
             data = json.loads(msg.data)

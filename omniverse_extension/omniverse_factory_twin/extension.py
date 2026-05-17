@@ -3,7 +3,7 @@ import sys
 from pathlib import Path 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent)) # add root to Python search path due to I wanna load config.config_loader
 from config.config_loader import FactoryConfig
-from config.topic_resolver import parseMqttTopic, getAllMachinesMqttPattern
+from config.topic_resolver import parse_mqtt_topic, get_all_machines_mqtt_pattern
 
 # omniverse lib
 from omniverse_extension.omniverse_factory_twin.factory_log import FactoryLog
@@ -37,12 +37,12 @@ class MachineInfo():
             if topic == None:
                 continue
             value = topic[p]
-            tmp_servity, tmp_servity_level = config.computeSeverity(p, value)
+            tmp_servity, tmp_servity_level = config.compute_severity(p, value)
             if tmp_servity_level > servity_level:
                 servity_level = tmp_servity_level
                 servity = tmp_servity
             
-        color = config.resolveColor(operation_mode, servity)
+        color = config.resolve_color(operation_mode, servity)
         # print(f"[Factory Twin] {self.machine_id} operation mode: {operation_mode}, color: {color}")
         return color
 
@@ -121,8 +121,8 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._logger.log(f"[Factory Twin] building materials stage: {stage}")
 
         for operation_mode in self._config.operation_mode:
-            for severity in self._config.severityKeys:
-                color = self._config.resolveColor(operation_mode, severity)
+            for severity in self._config.severity_keys:
+                color = self._config.resolve_color(operation_mode, severity)
                 if color in self._material_map:
                     continue
                 mat_name = f"Mat_{operation_mode}_{severity}"
@@ -149,7 +149,7 @@ class FactoryTwinExtension(BaseMqttExtension):
             self._logger.log(f"[Factory Twin] Build collection end : {prim_path}")
 
     def getMqttTopics(self):
-        return getAllMachinesMqttPattern()
+        return get_all_machines_mqtt_pattern()
 
     def onUpdate(self, event):
         carb.profiler.begin(1, "Digital Twin Extension: on_update")
@@ -161,7 +161,7 @@ class FactoryTwinExtension(BaseMqttExtension):
 
         carb.profiler.begin(1, "Digital Twin Extension: for loop on update items")
         for machine_id, machine_info in updates.items():
-            machine = self._config.getMachineById(machine_id)
+            machine = self._config.get_machine_by_id(machine_id)
 
             carb.profiler.begin(1, "Digital Twin Extension: calc color")
             color = machine_info.calc_color(self._config, self._log)
@@ -201,7 +201,7 @@ class FactoryTwinExtension(BaseMqttExtension):
     # Called by base class
     def onMqttMessage(self, topic: str, data: dict):
         self._logger.log(f"[Factory Twin] get message: {topic} -> {data}")
-        machine_id, param = parseMqttTopic(topic) 
+        machine_id, param = parse_mqtt_topic(topic) 
         value = data.get(param)
         self._log.record(machine_id, data)
         self._logger.log(f"{machine_id} [{param}:{value}]")

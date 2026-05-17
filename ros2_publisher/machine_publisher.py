@@ -32,7 +32,7 @@ class MachinePublisher(Node):
                 machine_state = MachineState(machine.machine_id)
             self._machine_state_list.append(machine_state)
             for p in self._config.parameters:
-                ros_topic = machine.getRosTopic(p)
+                ros_topic = machine.get_ros_topic(p)
                 publisher = self.create_publisher(String, ros_topic, 10)
                 self._param_publisher_dic[(machine_state.machine_id,p)] = publisher
 
@@ -51,7 +51,7 @@ class MachinePublisher(Node):
                 publisher = self._param_publisher_dic[(machine_state.machine_id, param)]
                 publisher.publish(msg)
 
-                topic = self._config.getMachineById(machine_state.machine_id).getRosTopic(param)
+                topic = self._config.get_machine_by_id(machine_state.machine_id).get_ros_topic(param)
                 self.get_logger().info(f"{topic} -> {msg}")
 
 def main(args=None):
