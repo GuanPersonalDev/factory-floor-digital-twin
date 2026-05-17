@@ -11,10 +11,13 @@ import omni.ui as ui
 
 # factory project
 from omniverse_extension.omniverse_factory_twin.factory_log import FactoryLog
+from omniverse_extension.omniverse_factory_twin.view.factory_overview import FactoryOverview
 
 class HudPanelWidget:
     def __init__(self):
         self._window = None
+        self._factory_overview = None
+        print(f"[Factory Twin] panel widge init")
         self.build_ui()
         
 
@@ -24,9 +27,14 @@ class HudPanelWidget:
             width = 380,
             height = 800,
         )
+
+        print(f"[Factory Twin] before with window frame")
         with self._window.frame:
             self._root_stack = ui.VStack(spacing=6)
+            self._factory_overview = FactoryOverview()
+            print(f"[Factory Twin] with window frame")
             self._render_all()
             
     def _render_all(self):
         self._root_stack.clear()
+        self._factory_overview.redraw()
