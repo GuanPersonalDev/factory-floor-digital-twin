@@ -3,7 +3,7 @@ import json
 import queue
 import threading
 from typing import Callable, Optional
-from omniverse_extension.Tool.debug import DebugLogger
+from omniverse_extension.tool.debug import DebugLogger
 
 class MqttClient:
     def __init__(self, host: str, port: int):

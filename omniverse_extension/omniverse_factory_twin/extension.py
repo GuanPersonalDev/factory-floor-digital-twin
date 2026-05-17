@@ -12,8 +12,8 @@ from pxr import Sdf, Gf, Usd, UsdGeom, UsdShade
 import omni.usd
 from omni.usd import StageEventType
 import threading
-from omniverse_extension.Tool.generate_material import create_material, remove_material
-from omniverse_extension.Tool.debug import DebugLogger
+from omniverse_extension.tool.generate_material import create_material, remove_material
+from omniverse_extension.tool.debug import DebugLogger
 import carb.profiler
 
 # tools
