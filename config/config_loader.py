@@ -56,6 +56,8 @@ class FactoryConfig:
     TEMPERATURE_PARAM_KEY = "temperature"
     VIBRATION_PARAM_KEY = "vibration"
 
+    ENABLE_LOG = True
+
     
     def __init__(self, config_dir: Optional[str] = None):
         self._configDir = Path(config_dir) if config_dir else _DEFAULT_CONFIG_DIR
