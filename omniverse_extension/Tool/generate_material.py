@@ -1,6 +1,6 @@
 from pxr import Usd, UsdShade, Sdf, Gf
 
-def createMaterial(stage: Usd.Stage, material_root_path: str, material_name: str, color: tuple[float, float, float, float]) -> UsdShade.Material:
+def create_material(stage: Usd.Stage, material_root_path: str, material_name: str, color: tuple[float, float, float, float]) -> UsdShade.Material:
     mat_path = f"{material_root_path}/{material_name}"
     material = UsdShade.Material.Define(stage, mat_path)
 
@@ -18,7 +18,7 @@ def createMaterial(stage: Usd.Stage, material_root_path: str, material_name: str
     )
     return material
 
-def removeMaterial(stage: Usd.Stage, material_root_path: str):
+def remove_material(stage: Usd.Stage, material_root_path: str):
     material_root = stage.GetPrimAtPath(material_root_path)
     if material_root.IsValid():
         stage.RemovePrim(material_root_path)

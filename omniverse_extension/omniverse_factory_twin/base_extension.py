@@ -9,8 +9,8 @@ class BaseMqttExtension(omni.ext.IExt):
     def on_startup(self, ext_id):
         print(f"[{self.__class__.__name__}] activated")
         self.mqttClient_ = MqttClient(self.MQTT_HOST, self.MQTT_PORT)
-        self.onExtensionStartup(ext_id)
-        self.mqttClient_.connect(self.getMqttTopics())
+        self.on_extension_startup(ext_id)
+        self.mqttClient_.connect(self.get_mqtt_topics())
 
         self._update_sub = omni.kit.app.get_app().get_update_event_stream().create_subscription_to_pop(
             self._on_update, name="mqtt_poll"
@@ -18,23 +18,23 @@ class BaseMqttExtension(omni.ext.IExt):
     
     def _on_update(self, event):
         for topic, data in self.mqttClient_.poll():
-            self.onMqttMessage(topic, data)
+            self.on_mqtt_message(topic, data)
 
-    def getMqttTopics(self):
+    def get_mqtt_topics(self):
         return []
 
     def on_shutdown(self):
         print(f"[{self.__class__.__name__}] shutdown")
-        self.onExtensionShutdown()
+        self.on_extension_shutdown()
         if hasattr(self, 'mqttClient_') and self.mqttClient_:
             self.mqttClient_.disconnect()
             self.mqttClient_ = None
 
-    def onExtensionStartup(self, ext_id):
+    def on_extension_startup(self, ext_id):
         pass
 
-    def onExtensionShutdown(self):
+    def on_extension_shutdown(self):
         pass
         
-    def onMqttMessage(self, topic: str, data: dict):
+    def on_mqtt_message(self, topic: str, data: dict):
         raise NotImplementedError

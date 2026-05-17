@@ -12,7 +12,7 @@ from pxr import Sdf, Gf, Usd, UsdGeom, UsdShade
 import omni.usd
 from omni.usd import StageEventType
 import threading
-from omniverse_extension.Tool.generate_material import createMaterial, removeMaterial
+from omniverse_extension.Tool.generate_material import create_material, remove_material
 from omniverse_extension.Tool.debug import DebugLogger
 import carb.profiler
 
@@ -25,7 +25,7 @@ class MachineInfo():
         self.current_color: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
 
     def calc_color(self, config :FactoryConfig, log :FactoryLog) -> tuple[float, float, float, float]:
-        operation_mode = log.getLatestMode(self.machine_id)
+        operation_mode = log.get_latest_mode(self.machine_id)
         if operation_mode == None:
             operation_mode = config.OFFLINE_MODE_KEY
         servity = "NORMAL"
@@ -33,7 +33,7 @@ class MachineInfo():
         for p in config.parameters:
             if p == config.OPERATION_PARAM_KEY:
                 continue
-            topic = log.getMachineLastestTopic(self.machine_id, p)
+            topic = log.get_machine_lastest_topic(self.machine_id, p)
             if topic == None:
                 continue
             value = topic[p]
@@ -58,9 +58,9 @@ class FactoryTwinExtension(BaseMqttExtension):
     MQTT_BROKER_HOST = "localhost"
     MQTT_BROKER_PORT = 1883
     MATERIAL_ROOT = "/World/StatusMaterials"
-    ENABLE_LOG = False
+    ENABLE_LOG = True
 
-    def onExtensionStartup(self, ext_id):
+    def on_extension_startup(self, ext_id):
         self._logger = DebugLogger()
         self._logger.enable = self.ENABLE_LOG
         self._config = FactoryConfig()
@@ -71,7 +71,7 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._updateSub = None
         self._is_building = False
         self._stage_event_sub = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
-            self.onStageEvent,
+            self.on_stage_event,
             name="factory twin stage ready"
         )
         self._machine_info_dic = {}
@@ -83,40 +83,40 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._logger.log(f"[Factory Twin] Stage: {stage}")
         self._logger.log(f"[Factory Twin] Stage is valid: {stage is not None}")
         if stage:
-            self.initSource()
+            self.init_source()
         else:
             self._logger.log(f"[Factory Twin] State not exist, waiting for ASSETS_LOADED")
 
         self._logger.log("[Factory Twin] Extension activate")
 
-    def initSource(self):
+    def init_source(self):
         self._is_building = True
         try:
-            self.buildMaterials()
+            self.build_materials()
             self._logger.log(f"[Factory Twin] Material map count: {len(self._material_map)}")
-            self.buildCollections()
+            self.build_collections()
             self._logger.log(f"[Factory Twin] Collection map count: {len(self._collection_map)}")
-            self.startUpdate()           
+            self.start_update()           
         finally:
             self._is_building = False
 
-    def startUpdate(self):
+    def start_update(self):
          self._updateSub = omni.kit.app.get_app().get_update_event_stream().create_subscription_to_pop(
-            self.onUpdate, name="factory_twin_update"
+            self.on_update, name="factory_twin_update"
         )
     
-    def onStageEvent(self, event):
+    def on_stage_event(self, event):
         if event.type == int(StageEventType.OPENED):
             if self._is_building:
                 return
             self._updateSub = None
             stage = omni.usd.get_context().get_stage()
-            removeMaterial(stage, self.MATERIAL_ROOT)
+            remove_material(stage, self.MATERIAL_ROOT)
             self._material_map = {}
             self._collection_map = {}
-            self.initSource()
+            self.init_source()
 
-    def buildMaterials(self):
+    def build_materials(self):
         stage = omni.usd.get_context().get_stage()
         self._logger.log(f"[Factory Twin] building materials stage: {stage}")
 
@@ -127,12 +127,12 @@ class FactoryTwinExtension(BaseMqttExtension):
                     continue
                 mat_name = f"Mat_{operation_mode}_{severity}"
                 self._logger.log(f"[Factory Twin] Ready to create material: {mat_name} color={color}")
-                mat = createMaterial(stage, self.MATERIAL_ROOT, mat_name, color)
+                mat = create_material(stage, self.MATERIAL_ROOT, mat_name, color)
                 self._logger.log(f"[Factory Twin] Created material: {mat}")
                 self._material_map[color] = mat
         self._logger.log(f"[Factory Twin] Created {len(self._material_map)} materials")
     
-    def buildCollections(self):
+    def build_collections(self):
         stage = omni.usd.get_context().get_stage()
 
         for machine in self._config.machines:
@@ -148,10 +148,10 @@ class FactoryTwinExtension(BaseMqttExtension):
             self._collection_map[machine.machine_id] = collection_api
             self._logger.log(f"[Factory Twin] Build collection end : {prim_path}")
 
-    def getMqttTopics(self):
+    def get_mqtt_topics(self):
         return get_all_machines_mqtt_pattern()
 
-    def onUpdate(self, event):
+    def on_update(self, event):
         carb.profiler.begin(1, "Digital Twin Extension: on_update")
 
         with self._lock:
@@ -172,22 +172,22 @@ class FactoryTwinExtension(BaseMqttExtension):
             machine_info.record_color(color)
 
             carb.profiler.begin(1, "Digital Twin Extension: update color")
-            self.updateMachineColor(machine.machine_id, color)
+            self.update_machine_color(machine.machine_id, color)
             carb.profiler.end(1)
 
         carb.profiler.end(1)
 
         carb.profiler.end(1)
 
-    def onExtensionShutdown(self):
+    def on_extension_shutdown(self):
         self._updateSub = None
         self._stage_event_sub = None
         stage = omni.usd.get_context().get_stage()
-        self.removeCollections()
-        removeMaterial(stage, self.MATERIAL_ROOT)
+        self.remove_collections()
+        remove_material(stage, self.MATERIAL_ROOT)
         self._logger.log("[Factory Twin] Extension end")
 
-    def removeCollections(self):
+    def remove_collections(self):
         stage = omni.usd.get_context().get_stage()
         for machine in self._config.machines:
             root_prim = stage.GetPrimAtPath(machine.usd_prim_path)
@@ -199,14 +199,14 @@ class FactoryTwinExtension(BaseMqttExtension):
             root_prim.RemoveAPI(Usd.CollectionAPI, "statusOverride")
 
     # Called by base class
-    def onMqttMessage(self, topic: str, data: dict):
+    def on_mqtt_message(self, topic: str, data: dict):
         self._logger.log(f"[Factory Twin] get message: {topic} -> {data}")
         machine_id, param = parse_mqtt_topic(topic) 
         value = data.get(param)
         self._log.record(machine_id, data)
         self._logger.log(f"{machine_id} [{param}:{value}]")
 
-    def updateMachineColor(self, machine_id: str, color: tuple):
+    def update_machine_color(self, machine_id: str, color: tuple):
         try:
             collection_api = self._collection_map[machine_id]
             if collection_api is None:

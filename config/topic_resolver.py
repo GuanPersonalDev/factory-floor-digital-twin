@@ -29,8 +29,8 @@ if __name__ == "__main__":
 
     print(f"--- Topic parse test --- ")
     test_topics = [
-        "factory/machine_01/temperature"
-        "factory/machine_02/vibration"
+        "factory/machine_01/temperature",
+        "factory/machine_02/vibration",
         "invalid/topic"
     ]
 

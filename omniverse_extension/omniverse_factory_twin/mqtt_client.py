@@ -13,13 +13,13 @@ class MqttClient:
         self.client_ = None
         self._message_queue: queue.Queue = queue.Queue()
         self._logger = DebugLogger()
-        self._logger.enable = False
+        self._logger.enable = True
        
     def connect(self, topics: list[str]):
         try:
             self.client_ = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-            self.client_.on_connect = lambda c, u, f, rc, p: self.onConnect(c, topics, rc)
-            self.client_.on_message = self.onMessage
+            self.client_.on_connect = lambda c, u, f, rc, p: self.on_connect(c, topics, rc)
+            self.client_.on_message = self.on_message
             self.client_.connect(self.host_, self.port_)
             self.client_.loop_start()
         except Exception as e:
@@ -31,7 +31,7 @@ class MqttClient:
             self.client_.disconnect()
             self._logger.log("[Mqtt Client] Disconnect end")
 
-    def onConnect(self, client, topics: list[str], reason_code):
+    def on_connect(self, client, topics: list[str], reason_code):
         if reason_code == 0:
             self._logger.log(f"[Mqtt Client] Connect success: {self.host_}:{self.port_}")
             for topic in topics:
@@ -40,7 +40,7 @@ class MqttClient:
         else:
             self._logger.log(f"[Mqtt Client] Connect fail: {reason_code}")
 
-    def onMessage(self, client, userdata, msg):
+    def on_message(self, client, userdata, msg):
         try:
             data = json.loads(msg.payload.decode())
             self._message_queue.put((msg.topic, data))
