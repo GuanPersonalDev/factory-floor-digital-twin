@@ -58,6 +58,7 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._updateSub = None
         self._stage_event_sub = None
         self._prim_render_manager.dispose()
+        self._hud.destroy()
         self._logger.log("[Factory Twin] Extension end")
 
     def get_mqtt_topics(self):

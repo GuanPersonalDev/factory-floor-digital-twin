@@ -24,7 +24,7 @@ class HudPanelWidget:
     def build_ui(self):
         self._window = ui.Window(
             "Factory Monitor",
-            width = 380,
+            width = 480,
             height = 800,
         )
 
@@ -38,3 +38,9 @@ class HudPanelWidget:
     def _render_all(self):
         self._root_stack.clear()
         self._factory_overview.redraw()
+
+    def destroy(self):
+        if self._window:
+            self._window.frame.clear()
+            self._window.destroy()
+            self._window = None

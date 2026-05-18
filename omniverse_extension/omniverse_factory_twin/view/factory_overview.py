@@ -4,19 +4,22 @@ from dataclasses import dataclass, field
 # omniverse lib
 import omni.ui as ui
 
+# Factory
+from .style_sheet import FactoryStyleSheet as FactoryStyle
+
 @dataclass
 class OverviewUnitInfo:
     label: str
     context: str
-    is_alarm: bool
+    alarm_level: str 
 
 class OverviewInfo:
     def get_data(self) -> list[OverviewUnitInfo]:
         result = []
-        result.append(OverviewUnitInfo(label="Floor", context="1F", is_alarm=False))
-        result.append(OverviewUnitInfo(label="Machine count", context="3", is_alarm=False))
-        result.append(OverviewUnitInfo(label="Warning/Error Count", context="1", is_alarm=True))
-        result.append(OverviewUnitInfo(label="Redraw time", context="08:00", is_alarm=False))
+        result.append(OverviewUnitInfo(label="Floor", context="1F", alarm_level="NORMAL"))
+        result.append(OverviewUnitInfo(label="Machine count", context="3", alarm_level="WARNING"))
+        result.append(OverviewUnitInfo(label="Warning/Error Count", context="1", alarm_level="ERROR"))
+        result.append(OverviewUnitInfo(label="Redraw time", context="08:00", alarm_level="NORMAL"))
         return result
 
 class FactoryOverview:
@@ -28,9 +31,25 @@ class FactoryOverview:
 
     def redraw(self):
         print(f"[Factory Twin] Redraw factory overview")
-        with ui.HStack(height=48, spacing=0):
-            for unit_data in self._view_data.get_data():
-                with ui.VStack(width=ui.Fraction(1), spacing=2):
-                    ui.Label(unit_data.label, height=14, style={"color": 0xFF888888, "font_size": 11})
-                    color = 0xFFBA7517 if unit_data.is_alarm else 0xFFFFFFFF
-                    ui.Label(unit_data.context, height=22, style={"color": color, "font_size": 14, "font_weight":"bold"})
+        with ui.ZStack(height=60):
+            ui.Rectangle(style=FactoryStyle.overview_bar_bg)
+
+            with ui.HStack():
+                ui.Spacer(width=8)
+                counter = 0
+                for unit_data in self._view_data.get_data():
+                    if counter > 0:
+                        with ui.ZStack(width=1):
+                            ui.Rectangle(style=FactoryStyle.overview_bar_divider)
+                    with ui.VStack(spacing=3):
+                        ui.Spacer()
+                        ui.Label(unit_data.label, height=18, style=FactoryStyle.overview_bar_label, alignment=ui.Alignment.CENTER)
+                        context_style = (
+                            FactoryStyle.overview_context_error if unit_data.alarm_level == "ERROR" else
+                            FactoryStyle.overview_context_warning if unit_data.alarm_level == "WARNING" else
+                            FactoryStyle.overview_context_normal
+                        )
+                        ui.Label(unit_data.context, height=22, style=context_style, alignment=ui.Alignment.CENTER)
+                        ui.Spacer()
+                    counter += 1
+            ui.Spacer(width=8)

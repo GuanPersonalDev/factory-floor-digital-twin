@@ -157,6 +157,7 @@ class PrimRenderManager:
             pass
 
     def dispose(self):
+        self._updateSub = None
         stage = omni.usd.get_context().get_stage()
         self.remove_collections()
         remove_material(stage, self.MATERIAL_ROOT)

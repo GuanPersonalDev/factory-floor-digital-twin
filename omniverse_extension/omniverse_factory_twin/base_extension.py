@@ -25,10 +25,10 @@ class BaseMqttExtension(omni.ext.IExt):
 
     def on_shutdown(self):
         print(f"[{self.__class__.__name__}] shutdown")
-        self.on_extension_shutdown()
         if hasattr(self, 'mqttClient_') and self.mqttClient_:
             self.mqttClient_.disconnect()
             self.mqttClient_ = None
+        self.on_extension_shutdown()
 
     def on_extension_startup(self, ext_id):
         pass
