@@ -1,7 +1,7 @@
 from omniverse_extension.omniverse_factory_twin.factory_log import FactoryLog
 from config.config_loader import FactoryConfig
 
-class MachineInfo():
+class MachineModel():
     def __init__(self, machine_id):
         self.machine_id = machine_id
         self.current_color: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)

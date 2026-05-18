@@ -17,7 +17,7 @@ from omniverse_extension.tool.generate_material import create_material, remove_m
 
 # factory project
 from .factory_log import FactoryLog
-from .model.machine_info import MachineInfo
+from .model.machine_model import MachineModel
 
 
 
@@ -33,7 +33,7 @@ class PrimRenderManager:
         self._log = log
         self._logger.enable = config.ENABLE_LOG
         for machine in config.machines:
-            self._machine_info_dic[machine.machine_id] = MachineInfo(machine.machine_id)
+            self._machine_info_dic[machine.machine_id] = MachineModel(machine.machine_id)
         self.is_building = False
 
     def init_source(self):
