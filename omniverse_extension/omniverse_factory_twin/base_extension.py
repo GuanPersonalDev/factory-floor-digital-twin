@@ -1,10 +1,13 @@
 import omni.ext
+import sys
 from .mqtt_client import MqttClient
 
 class BaseMqttExtension(omni.ext.IExt):
     
     MQTT_HOST = "localhost"
     MQTT_PORT = 1883
+
+    _EXTERNAL_MODULE_PREFIXES = ('config', 'omniverse_extension.tool')
 
     def on_startup(self, ext_id):
         print(f"[{self.__class__.__name__}] activated")
@@ -25,10 +28,17 @@ class BaseMqttExtension(omni.ext.IExt):
 
     def on_shutdown(self):
         print(f"[{self.__class__.__name__}] shutdown")
+        self._update_sub = None
         if hasattr(self, 'mqttClient_') and self.mqttClient_:
             self.mqttClient_.disconnect()
             self.mqttClient_ = None
         self.on_extension_shutdown()
+        self._purge_external_module_caches()
+
+    def _purge_external_module_caches(self):
+        for key in list(sys.modules.keys()):
+            if any(key == p or key.startswith(p + '.') for p in self._EXTERNAL_MODULE_PREFIXES):
+                del sys.modules[key]
 
     def on_extension_startup(self, ext_id):
         pass

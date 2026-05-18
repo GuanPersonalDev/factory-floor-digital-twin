@@ -14,9 +14,9 @@ from .base_extension import BaseMqttExtension
 from omniverse_extension.tool.debug import DebugLogger
 
 # factory project
-from omniverse_extension.omniverse_factory_twin.factory_log import FactoryLog
-from omniverse_extension.omniverse_factory_twin.prim_render_manager import PrimRenderManager
-from omniverse_extension.omniverse_factory_twin.view.hud_panel_widget import HudPanelWidget
+from .factory_log import FactoryLog
+from .prim_render_manager import PrimRenderManager
+from .view.hud_panel_widget import HudPanelWidget
 
 class FactoryTwinExtension(BaseMqttExtension):
 
@@ -27,11 +27,11 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._logger = DebugLogger()
         self._config = FactoryConfig()
         self._logger.enable = self._config.ENABLE_LOG
+
         self._log = FactoryLog()
         self._prim_render_manager = PrimRenderManager(self._config, self._log)
         self._hud = HudPanelWidget()
 
-        self._updateSub = None
         self._stage_event_sub = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
             self.on_stage_event,
             name="factory twin stage ready"
@@ -51,15 +51,19 @@ class FactoryTwinExtension(BaseMqttExtension):
         if event.type == int(StageEventType.OPENED):
             if self._prim_render_manager.is_building:
                 return
-            self._updateSub = None
             self._prim_render_manager.init_source()
 
     def on_extension_shutdown(self):
-        self._updateSub = None
         self._stage_event_sub = None
-        self._prim_render_manager.dispose()
-        self._hud.destroy()
+        self._config = None
+        self._log = None
+        try:
+            self._prim_render_manager.dispose()
+            self._prim_render_manager = None
+        finally:
+            self._hud.destroy()
         self._logger.log("[Factory Twin] Extension end")
+        self._logger = None
 
     def get_mqtt_topics(self):
         return get_all_machines_mqtt_pattern()

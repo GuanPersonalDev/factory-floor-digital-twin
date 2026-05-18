@@ -29,6 +29,9 @@ class MqttClient:
         if self.client_:
             self.client_.loop_stop()
             self.client_.disconnect()
+            self.client_.on_connect = None
+            self.client_.on_message = None
+            self.client_ = None
             self._logger.log("[Mqtt Client] Disconnect end")
 
     def on_connect(self, client, topics: list[str], reason_code):

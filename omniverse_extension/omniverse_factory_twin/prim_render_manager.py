@@ -16,8 +16,8 @@ from omniverse_extension.tool.debug import DebugLogger
 from omniverse_extension.tool.generate_material import create_material, remove_material
 
 # factory project
-from omniverse_extension.omniverse_factory_twin.factory_log import FactoryLog
-from omniverse_extension.omniverse_factory_twin.model.machine_info import MachineInfo
+from .factory_log import FactoryLog
+from .model.machine_info import MachineInfo
 
 
 
@@ -86,6 +86,8 @@ class PrimRenderManager:
 
     def remove_collections(self):
         stage = omni.usd.get_context().get_stage()
+        if not stage:
+            return
         for machine in self._config.machines:
             root_prim = stage.GetPrimAtPath(machine.usd_prim_path)
             if not root_prim.IsValid():
@@ -96,37 +98,26 @@ class PrimRenderManager:
             root_prim.RemoveAPI(Usd.CollectionAPI, "statusOverride")
 
     def start_update(self):
-         self._updateSub = omni.kit.app.get_app().get_update_event_stream().create_subscription_to_pop(
+        self._updateSub = None
+        self._updateSub = omni.kit.app.get_app().get_update_event_stream().create_subscription_to_pop(
             self.on_update, name="factory_twin_update"
         )
 
     def on_update(self, event):
-        carb.profiler.begin(1, "Digital Twin Extension: on_update")
 
         with self._lock:
-            carb.profiler.begin(1, "Digital Twin Extension: clone info dic")
             updates = dict(self._machine_info_dic)
-            carb.profiler.end(1)
 
-        carb.profiler.begin(1, "Digital Twin Extension: for loop on update items")
         for machine_id, machine_info in updates.items():
             machine = self._config.get_machine_by_id(machine_id)
 
-            carb.profiler.begin(1, "Digital Twin Extension: calc color")
             color = machine_info.calc_color(self._config, self._log)
-            carb.profiler.end(1)
 
             if machine_info.is_same_color(color):
                 continue
             machine_info.record_color(color)
 
-            carb.profiler.begin(1, "Digital Twin Extension: update color")
             self.update_machine_color(machine.machine_id, color)
-            carb.profiler.end(1)
-
-        carb.profiler.end(1)
-
-        carb.profiler.end(1)
 
     def update_machine_color(self, machine_id: str, color: tuple):
         try:
@@ -159,5 +150,6 @@ class PrimRenderManager:
     def dispose(self):
         self._updateSub = None
         stage = omni.usd.get_context().get_stage()
-        self.remove_collections()
-        remove_material(stage, self.MATERIAL_ROOT)
+        if stage:
+            self.remove_collections()
+            remove_material(stage, self.MATERIAL_ROOT)
