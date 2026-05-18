@@ -49,7 +49,7 @@ class FactoryStyleSheet:
     overview_bar_label = {
         __LABEL: {
             __COLOR: text_secondary,
-            __FONT_SIZE: 11,
+            __FONT_SIZE: 14,
         }   
     }
 
