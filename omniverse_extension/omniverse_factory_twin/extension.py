@@ -30,8 +30,7 @@ class FactoryTwinExtension(BaseMqttExtension):
 
         self._log = FactoryLog()
         self._prim_render_manager = PrimRenderManager(self._config, self._log)
-        self._hud = HudPanelWidget()
-
+        self._hud: HudPanelWidget = None
         self._stage_event_sub = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
             self.on_stage_event,
             name="factory twin stage ready"
@@ -41,17 +40,22 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._logger.log(f"[Factory Twin] Stage: {stage}")
         self._logger.log(f"[Factory Twin] Stage is valid: {stage is not None}")
         if stage:
-            self._prim_render_manager.init_source()
+            self.init_components()
         else:
             self._logger.log(f"[Factory Twin] State not exist, waiting for ASSETS_LOADED")
 
         self._logger.log("[Factory Twin] Extension activate")
+
+    def init_components(self):
+        self._logger.log(f"[Factory Twin] init components")
+        self._prim_render_manager.init_source()
+        self._hud = HudPanelWidget()
     
     def on_stage_event(self, event):
         if event.type == int(StageEventType.OPENED):
             if self._prim_render_manager.is_building:
                 return
-            self._prim_render_manager.init_source()
+            self.init_components()
 
     def on_extension_shutdown(self):
         self._stage_event_sub = None
@@ -61,7 +65,8 @@ class FactoryTwinExtension(BaseMqttExtension):
             self._prim_render_manager.dispose()
             self._prim_render_manager = None
         finally:
-            self._hud.destroy()
+            if self._hud:
+                self._hud.destroy()
         self._logger.log("[Factory Twin] Extension end")
         self._logger = None
 
