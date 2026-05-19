@@ -16,10 +16,10 @@ class OverviewUnitInfo:
 class OverviewInfo:
     def get_data(self) -> list[OverviewUnitInfo]:
         result = []
-        result.append(OverviewUnitInfo(label="Floor", context="1F", alarm_level="NORMAL"))
-        result.append(OverviewUnitInfo(label="Machine count", context="3", alarm_level="WARNING"))
-        result.append(OverviewUnitInfo(label="Warning/Error Count", context="1", alarm_level="ERROR"))
-        result.append(OverviewUnitInfo(label="Redraw time", context="08:00", alarm_level="NORMAL"))
+        result.append(OverviewUnitInfo(label="Floor", context="???", alarm_level="NORMAL"))
+        result.append(OverviewUnitInfo(label="Machine count", context="???", alarm_level="NORMAL"))
+        result.append(OverviewUnitInfo(label="Warning/Error Count", context="???", alarm_level="NORMAL"))
+        result.append(OverviewUnitInfo(label="Redraw time", context="??:??", alarm_level="NORMAL"))
         return result
 
 class FactoryOverview:

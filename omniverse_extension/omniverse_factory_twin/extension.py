@@ -52,6 +52,7 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._logger.log(f"[Factory Twin] init components")
         self._prim_render_manager.init_source()
         self._hud = HudPanelWidget()
+        self._hud.bind_overview_info(self._all_machine.get_overview_info())
     
     def on_stage_event(self, event):
         if event.type == int(StageEventType.OPENED):
@@ -65,6 +66,9 @@ class FactoryTwinExtension(BaseMqttExtension):
         dirty_color_machines = self._all_machine.get_dirty_machines(MachineModel.DIRTY_FLAG_COLOR)
         for machine in dirty_color_machines:
             self._prim_render_manager.update_machine_color(machine.machine_id, machine.current_color)
+        if self._hud:
+            self._hud.render_all()
+            self._logger.log(f"[Factory Twin] render hud")
 
     def on_extension_shutdown(self):
         self._stage_event_sub = None
