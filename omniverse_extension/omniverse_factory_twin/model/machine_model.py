@@ -2,35 +2,53 @@ from omniverse_extension.omniverse_factory_twin.factory_log import FactoryLog
 from config.config_loader import FactoryConfig
 
 class MachineModel():
-    def __init__(self, machine_id):
+    DIRTY_FLAG_COLOR = "Color"
+    def __init__(self, machine_id: str, config :FactoryConfig):
+        self._config = config
+        self._dirty_flag: list[str] = []
         self.machine_id = machine_id
+        self.current_operation_mode: str = config.OFFLINE_MODE_KEY
+        self.current_servity = self._config.NORMAL_STATE_KEY
         self.current_color: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
 
-    def calc_color(self, config :FactoryConfig, log :FactoryLog) -> tuple[float, float, float, float]:
+    def update(self, log :FactoryLog):
+        self.calc_operation_mode(log)
+        self.calc_severity(log)
+        self.calc_color()
+
+    def calc_operation_mode(self, log :FactoryLog):
         operation_mode = log.get_latest_mode(self.machine_id)
         if operation_mode == None:
-            operation_mode = config.OFFLINE_MODE_KEY
-        servity = "NORMAL"
+            operation_mode = self._config.OFFLINE_MODE_KEY       
+        self.current_operation_mode = operation_mode
+
+    def calc_severity(self, log: FactoryLog):
+        servity = self._config.NORMAL_STATE_KEY
         servity_level = 0
-        for p in config.parameters:
-            if p == config.OPERATION_PARAM_KEY:
+        for p in self._config.parameters:
+            if p == self._config.OPERATION_PARAM_KEY:
                 continue
             topic = log.get_machine_lastest_topic(self.machine_id, p)
             if topic == None:
                 continue
             value = topic[p]
-            tmp_servity, tmp_servity_level = config.compute_severity(p, value)
+            tmp_servity, tmp_servity_level = self._config.compute_severity(p, value)
             if tmp_servity_level > servity_level:
                 servity_level = tmp_servity_level
                 servity = tmp_servity
-            
-        color = config.resolve_color(operation_mode, servity)
-        # print(f"[Factory Twin] {self.machine_id} operation mode: {operation_mode}, color: {color}")
-        return color
+        self.current_servity = servity
 
-    def record_color(self, color: tuple[float, float, float, float]):
-        self.current_color = color
+    def calc_color(self):
+        color = self._config.resolve_color(self.current_operation_mode, self.current_servity)
+        if color != self.current_color:
+            self._mark_dirty(self.DIRTY_FLAG_COLOR)
+            self.current_color = color
 
-    def is_same_color(self, color: tuple[float, float, float, float]) -> bool:
-        return self.current_color == color
+    def _mark_dirty(self, flag: str):
+        self._dirty_flag.append(flag)
 
+    def reset_dirty_mark(self):
+        self._dirty_flag.clear()
+
+    def is_dirty(self, flag: str) -> bool:
+        return flag in self._dirty_flag

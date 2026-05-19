@@ -8,8 +8,6 @@ from config.config_loader import FactoryConfig
 import omni.kit.app
 from pxr import Sdf, Usd, UsdShade
 import omni.usd
-import threading
-import carb.profiler
 
 # tools
 from omniverse_extension.tool.debug import DebugLogger
@@ -23,17 +21,12 @@ from .model.machine_model import MachineModel
 
 class PrimRenderManager:
     MATERIAL_ROOT = "/World/StatusMaterials"
-    def __init__(self, config: FactoryConfig, log: FactoryLog):
+    def __init__(self, config: FactoryConfig):
         self._material_map: dict[tuple, UsdShade.Material] = {}
         self._collection_map: dict[str, Usd.CollectionAPI] = {}
-        self._machine_info_dic = {}
-        self._lock = threading.Lock()       
         self._logger = DebugLogger()
         self._config = config
-        self._log = log
         self._logger.enable = config.ENABLE_LOG
-        for machine in config.machines:
-            self._machine_info_dic[machine.machine_id] = MachineModel(machine.machine_id)
         self.is_building = False
 
     def init_source(self):
@@ -48,7 +41,6 @@ class PrimRenderManager:
             self._logger.log(f"[Factory Twin] Material map count: {len(self._material_map)}")
             self.build_collections()
             self._logger.log(f"[Factory Twin] Collection map count: {len(self._collection_map)}")
-            self.start_update()           
         finally:
             self.is_building = False
 
@@ -97,29 +89,7 @@ class PrimRenderManager:
 
             root_prim.RemoveAPI(Usd.CollectionAPI, "statusOverride")
 
-    def start_update(self):
-        self._updateSub = None
-        self._updateSub = omni.kit.app.get_app().get_update_event_stream().create_subscription_to_pop(
-            self.on_update, name="factory_twin_update"
-        )
-
-    def on_update(self, event):
-
-        with self._lock:
-            updates = dict(self._machine_info_dic)
-
-        for machine_id, machine_info in updates.items():
-            machine = self._config.get_machine_by_id(machine_id)
-
-            color = machine_info.calc_color(self._config, self._log)
-
-            if machine_info.is_same_color(color):
-                continue
-            machine_info.record_color(color)
-
-            self.update_machine_color(machine.machine_id, color)
-
-    def update_machine_color(self, machine_id: str, color: tuple):
+    def update_machine_color(self, machine_id:str, color: tuple):
         try:
             collection_api = self._collection_map[machine_id]
             if collection_api is None:
@@ -148,7 +118,6 @@ class PrimRenderManager:
             pass
 
     def dispose(self):
-        self._updateSub = None
         stage = omni.usd.get_context().get_stage()
         if stage:
             self.remove_collections()

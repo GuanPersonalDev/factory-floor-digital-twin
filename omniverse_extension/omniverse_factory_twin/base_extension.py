@@ -22,6 +22,10 @@ class BaseMqttExtension(omni.ext.IExt):
     def _on_update(self, event):
         for topic, data in self.mqttClient_.poll():
             self.on_mqtt_message(topic, data)
+            self._after_got_mqtt_message()
+
+    def _after_got_mqtt_message(self):
+        pass
 
     def get_mqtt_topics(self):
         return []

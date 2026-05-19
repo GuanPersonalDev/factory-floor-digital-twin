@@ -14,6 +14,8 @@ from .base_extension import BaseMqttExtension
 from omniverse_extension.tool.debug import DebugLogger
 
 # factory project
+from .model.machine_model import MachineModel
+from .model.all_machine import AllMachine
 from .factory_log import FactoryLog
 from .prim_render_manager import PrimRenderManager
 from .view.hud_panel_widget import HudPanelWidget
@@ -27,9 +29,9 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._logger = DebugLogger()
         self._config = FactoryConfig()
         self._logger.enable = self._config.ENABLE_LOG
-
         self._log = FactoryLog()
-        self._prim_render_manager = PrimRenderManager(self._config, self._log)
+        self._prim_render_manager = PrimRenderManager(self._config)
+        self._all_machine = AllMachine(self._config)
         self._hud: HudPanelWidget = None
         self._stage_event_sub = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
             self.on_stage_event,
@@ -56,6 +58,13 @@ class FactoryTwinExtension(BaseMqttExtension):
             if self._prim_render_manager.is_building:
                 return
             self.init_components()
+
+    def _after_got_mqtt_message(self):
+        self._all_machine.clear_last_check_flags()
+        self._all_machine.update(self._log)
+        dirty_color_machines = self._all_machine.get_dirty_machines(MachineModel.DIRTY_FLAG_COLOR)
+        for machine in dirty_color_machines:
+            self._prim_render_manager.update_machine_color(machine.machine_id, machine.current_color)
 
     def on_extension_shutdown(self):
         self._stage_event_sub = None
