@@ -225,6 +225,8 @@ build/
 __pycache__/
 .claude
 .vscode
+CLAUDE.md
+skills/
 mosquitto/data/ 
 mosquitto/log/
 
