@@ -5,7 +5,7 @@ from config.config_loader import FactoryConfig
 from ..factory_log import FactoryLog
 from .machine_model import MachineModel
 from .factory_overview_model import FactoryOverviewModel
-from ..view.factory_overview import OverviewInfo
+from ..view.factory_overview import OverviewData
 
 """
 Manage all machine model
@@ -24,7 +24,7 @@ class AllMachine:
             machine_model.update(log)
         self._factory_overview_model.update(self._machine_model_dic.values())
 
-    def get_overview_info(self) -> OverviewInfo:
+    def get_overview_info(self) -> OverviewData:
         return self._factory_overview_model
 
     def get_dirty_machines(self, flag: str) -> list[MachineModel]:

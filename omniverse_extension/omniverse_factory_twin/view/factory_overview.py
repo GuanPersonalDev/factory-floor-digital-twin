@@ -13,7 +13,7 @@ class OverviewUnitInfo:
     context: str
     alarm_level: str 
 
-class OverviewInfo:
+class OverviewData:
     def get_data(self) -> list[OverviewUnitInfo]:
         result = []
         result.append(OverviewUnitInfo(label="Floor", context="???", alarm_level="NORMAL"))
@@ -24,13 +24,12 @@ class OverviewInfo:
 
 class FactoryOverview:
     def __init__(self):
-        self._view_data = OverviewInfo()
+        self._view_data = OverviewData()
 
-    def bind_view_data(self, data: OverviewInfo):
+    def bind_view_data(self, data: OverviewData):
         self._view_data = data
 
     def redraw(self):
-        print(f"[Factory Twin] Redraw factory overview")
         with ui.ZStack(height=60):
             ui.Rectangle(style=FactoryStyle.overview_bar_bg)
 

@@ -7,10 +7,10 @@ import omni.kit.app
 
 # factory
 from .machine_model import MachineModel
-from ..view.factory_overview import OverviewInfo
+from ..view.factory_overview import OverviewData
 from ..view.factory_overview import OverviewUnitInfo
 
-class FactoryOverviewModel(OverviewInfo):
+class FactoryOverviewModel(OverviewData):
     def __init__(self):
         self._machine_count: int = 0
         self._warning_count: int = 0
