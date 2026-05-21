@@ -35,7 +35,7 @@ class HudPanelWidget:
             self._machine_info_list = MachineInfoList()
             self.render_all()
 
-    def bind_overview_info(self, overview_info: OverviewData):
+    def bind_overview_data(self, overview_info: OverviewData):
         self._factory_overview.bind_view_data(overview_info)
     
     def bind_machine_info_list_data(self, list_data: MachineInfoListData):
