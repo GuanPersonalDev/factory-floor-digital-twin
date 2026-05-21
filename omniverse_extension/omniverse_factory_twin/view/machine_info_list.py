@@ -23,17 +23,26 @@ class MachineInfoListData:
         result.append(UnitRowInfo(
             severity=FactoryConfig.NORMAL_STATE_KEY,
             operation_mode=FactoryConfig.RUNNING_MODE_KEY,
-            machine_id="Dummy_001",
+            machine_id="dummy_001",
             temperature_and_severity=(25, FactoryConfig.NORMAL_STATE_KEY),
             vibration_and_severity=(2, FactoryConfig.NORMAL_STATE_KEY)
         ))
         result.append(UnitRowInfo(
             severity=FactoryConfig.ERROR_STATE_KEY,
             operation_mode=FactoryConfig.RUNNING_MODE_KEY,
-            machine_id="Dummy_002",
+            machine_id="dummy_002",
             temperature_and_severity=(100, FactoryConfig.ERROR_STATE_KEY),
             vibration_and_severity=(7, FactoryConfig.WARNING_STATE_KEY)
         ))
+        for i in range(0, 40):
+            result.append(UnitRowInfo(
+                severity=FactoryConfig.NORMAL_STATE_KEY,
+                operation_mode=FactoryConfig.RUNNING_MODE_KEY,
+                machine_id=f"dummy_scroll_{i}",
+                temperature_and_severity=(0, FactoryConfig.NORMAL_STATE_KEY),
+                vibration_and_severity=(0, FactoryConfig.NORMAL_STATE_KEY)
+            ))
+
         return result
     
 
@@ -46,8 +55,13 @@ class MachineInfoList:
         self._list_data = data
 
     def redraw(self):
-        for unit_row_info in self._list_data.get_row_info_list():
-            self._render_one_raw(unit_row_info)
+        with ui.ScrollingFrame(
+            horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF,
+            vertical_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_AS_NEEDED,
+        ):
+            with ui.VStack(height=0, spacing=2):
+                for unit_row_info in self._list_data.get_row_info_list():
+                    self._render_one_raw(unit_row_info)
 
     def _render_one_raw(self, row_info: UnitRowInfo):
         (main_color, badge_style) = self._color_and_badge(row_info)
