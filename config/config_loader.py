@@ -131,6 +131,15 @@ class FactoryConfig:
         return self._param_list
 
     @property
+    def parameter_and_unit(self) -> list[tuple[str, str]]:
+        result = []
+        for param in self._param_list:
+            t = self._thresholds.get(param)
+            unit = t.get("unit", "")
+            result.append((param, unit))
+        return result
+
+    @property
     def operation_mode(self) -> list[str]:
         return self._thresholds.get("operation_mode",{}).get("valid_values", {})
 
@@ -156,9 +165,9 @@ if __name__ == "__main__":
     for s in config.severity_keys:
         print(s)
 
-    print("\n--- Parameter list ---")
-    for p in config.parameters:
-        print(p)
+    print("\n--- Parameter and unit list ---")
+    for (p, unit) in config.parameter_and_unit:
+        print(f"{p}, unit: {unit}")
 
     print("\n--- Thresholds test ---")
     test_cases = [
