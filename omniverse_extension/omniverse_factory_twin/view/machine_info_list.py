@@ -60,6 +60,7 @@ class MachineInfoList:
         self._list_data = data
 
     def redraw(self):
+        ui.Label("Machine List:", height=32, style=FactoryStyle.section_title, alignment=ui.Alignment.LEFT_CENTER)
         with ui.ScrollingFrame(
             horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF,
             vertical_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_AS_NEEDED,

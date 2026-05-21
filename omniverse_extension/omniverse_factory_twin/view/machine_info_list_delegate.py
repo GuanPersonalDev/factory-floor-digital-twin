@@ -13,6 +13,7 @@ class MachineInfoListDelegate(MachineInfoListData):
             for (param_str, param_info) in machine.current_param_dic.items():
                 (value, unit, severity) = param_info
                 param.append((param_str, value, unit, severity))
+
             row_info = UnitRowInfo(
                 severity=machine.current_servity,
                 operation_mode=machine.current_operation_mode,

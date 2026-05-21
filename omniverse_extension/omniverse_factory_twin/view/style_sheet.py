@@ -35,6 +35,14 @@ class FactoryStyleSheet:
     col_offline = color("#6E7681")
     col_idle = color("#58A6FF")
 
+    # Common
+    section_title = {
+        __LABEL: {
+            __COLOR: text_primary,
+            __FONT_SIZE: 16
+        }
+    }
+
 
     # Overview
     overview_bar_bg = {
