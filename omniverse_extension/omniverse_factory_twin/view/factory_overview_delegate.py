@@ -7,8 +7,7 @@ import omni.kit.app
 
 # factory
 from ..model.machine_model import MachineModel
-from .factory_overview import OverviewData
-from .factory_overview import OverviewUnitInfo
+from .factory_overview import OverviewData, OverviewUnitInfo
 
 class FactoryOverviewDelegate(OverviewData):
     def __init__(self):

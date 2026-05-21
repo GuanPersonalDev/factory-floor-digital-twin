@@ -10,6 +10,7 @@ class MachineModel():
         self.current_operation_mode: str = config.OFFLINE_MODE_KEY
         self.current_servity = self._config.NORMAL_STATE_KEY
         self.current_color: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
+        self.current_param_dic: dict[str, tuple[float, str, str]] = {}
 
     def update(self, log :FactoryLog):
         self.calc_operation_mode(log)
@@ -25,7 +26,7 @@ class MachineModel():
     def calc_severity(self, log: FactoryLog):
         servity = self._config.NORMAL_STATE_KEY
         servity_level = 0
-        for p in self._config.parameters:
+        for (p, unit) in self._config.parameter_and_unit:
             if p == self._config.OPERATION_PARAM_KEY:
                 continue
             topic = log.get_machine_lastest_topic(self.machine_id, p)
@@ -33,6 +34,7 @@ class MachineModel():
                 continue
             value = topic[p]
             tmp_servity, tmp_servity_level = self._config.compute_severity(p, value)
+            self.current_param_dic[p] = (value, unit, tmp_servity)
             if tmp_servity_level > servity_level:
                 servity_level = tmp_servity_level
                 servity = tmp_servity

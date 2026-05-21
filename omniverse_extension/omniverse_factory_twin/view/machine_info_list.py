@@ -14,8 +14,7 @@ class UnitRowInfo:
     severity: str
     operation_mode: str
     machine_id: str
-    temperature_and_severity: tuple[float, str]
-    vibration_and_severity: tuple[float, str] 
+    param_data: list[tuple[str, float, str, str]]
 
 class MachineInfoListData:
     def get_row_info_list(self) -> list[UnitRowInfo]:
@@ -24,23 +23,29 @@ class MachineInfoListData:
             severity=FactoryConfig.NORMAL_STATE_KEY,
             operation_mode=FactoryConfig.RUNNING_MODE_KEY,
             machine_id="dummy_001",
-            temperature_and_severity=(25, FactoryConfig.NORMAL_STATE_KEY),
-            vibration_and_severity=(2, FactoryConfig.NORMAL_STATE_KEY)
+            param_data = [
+                (FactoryConfig.TEMPERATURE_PARAM_KEY, 25, "°C", FactoryConfig.NORMAL_STATE_KEY),
+                (FactoryConfig.VIBRATION_PARAM_KEY, 2, "mm/s", FactoryConfig.NORMAL_STATE_KEY),
+            ]
         ))
         result.append(UnitRowInfo(
             severity=FactoryConfig.ERROR_STATE_KEY,
             operation_mode=FactoryConfig.RUNNING_MODE_KEY,
             machine_id="dummy_002",
-            temperature_and_severity=(100, FactoryConfig.ERROR_STATE_KEY),
-            vibration_and_severity=(7, FactoryConfig.WARNING_STATE_KEY)
+            param_data = [
+                (FactoryConfig.TEMPERATURE_PARAM_KEY, 100, "°C", FactoryConfig.ERROR_STATE_KEY),
+                (FactoryConfig.VIBRATION_PARAM_KEY, 7, "mm/s", FactoryConfig.WARNING_STATE_KEY),
+            ]
         ))
         for i in range(0, 40):
             result.append(UnitRowInfo(
                 severity=FactoryConfig.NORMAL_STATE_KEY,
                 operation_mode=FactoryConfig.RUNNING_MODE_KEY,
                 machine_id=f"dummy_scroll_{i}",
-                temperature_and_severity=(0, FactoryConfig.NORMAL_STATE_KEY),
-                vibration_and_severity=(0, FactoryConfig.NORMAL_STATE_KEY)
+                param_data = [
+                    (FactoryConfig.TEMPERATURE_PARAM_KEY, 0, "°C", FactoryConfig.NORMAL_STATE_KEY),
+                    (FactoryConfig.VIBRATION_PARAM_KEY, 0, "mm/s", FactoryConfig.NORMAL_STATE_KEY),
+                ]
             ))
 
         return result
@@ -77,15 +82,10 @@ class MachineInfoList:
                     ui.Button(row_info.operation_mode, width=68, height=20, style=badge_style, enabled=False, alignment=ui.Alignment.LEFT_CENTER)
                     ui.Spacer()
                 ui.Spacer(width=4)
-                (temp, temp_severity) = row_info.temperature_and_severity
-                temp_str = f"T {temp:.1f}°C" if temp is not None else "T -"
-                temp_style = self._get_param_style(temp_severity)
-                ui.Label(temp_str, width=75, style=temp_style, alignment=ui.Alignment.LEFT_CENTER)
-
-                (vib, vib_severity) = row_info.vibration_and_severity
-                vib_str = f"V {vib:.1f}" if vib is not None else "V -"
-                vib_style = self._get_param_style(vib_severity)
-                ui.Label(vib_str, width=75, style=vib_style, alignment=ui.Alignment.LEFT_CENTER)
+                for (param_str, value, unit, severity) in row_info.param_data:
+                    style = self._get_param_style(severity)
+                    str = f"{param_str[0].upper()} {value:.1f}{unit}"
+                    ui.Label(str, width=75, style=style, alignment=ui.Alignment.LEFT_CENTER)
         pass
 
     def _color_and_badge(self, raw_info: UnitRowInfo):

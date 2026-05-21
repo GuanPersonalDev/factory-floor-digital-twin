@@ -53,6 +53,8 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._prim_render_manager.init_source()
         self._hud = HudPanelWidget()
         self._hud.bind_overview_data(self._all_machine.get_overview_delegate())
+        self._hud.bind_machine_info_list_data(self._all_machine.get_machine_info_list_delegate())
+
     
     def on_stage_event(self, event):
         if event.type == int(StageEventType.OPENED):
