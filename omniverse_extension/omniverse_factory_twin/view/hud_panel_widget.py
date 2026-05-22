@@ -13,12 +13,14 @@ import omni.ui as ui
 from ..factory_log import FactoryLog
 from .factory_overview import FactoryOverview, OverviewData
 from .machine_info_list import MachineInfoList, MachineInfoListData
+from .alert_machines_view import AlertMachinesView
 
 class HudPanelWidget:
     def __init__(self):
         self._window = None
         self._factory_overview = None
         self._machine_info_list = None
+        self._alert_machines_view = None
         self.build_ui()
        
 
@@ -32,6 +34,7 @@ class HudPanelWidget:
         with self._window.frame:
             self._root_stack = ui.VStack(spacing=6)
             self._factory_overview = FactoryOverview()
+            self._alert_machines_view = AlertMachinesView()
             self._machine_info_list = MachineInfoList()
             self.render_all()
 
@@ -46,6 +49,7 @@ class HudPanelWidget:
         self._root_stack.clear()
         with self._root_stack:
             self._factory_overview.redraw()
+            self._alert_machines_view.redraw()
             self._machine_info_list.redraw()
 
     def destroy(self):
@@ -53,6 +57,7 @@ class HudPanelWidget:
             self._window.frame.clear()
             self._window.destroy()
             self._factory_overview = None
+            self._alert_machines_view = None
             self._machine_info_list = None
             self._root_stack = None
             self._window = None

@@ -43,6 +43,14 @@ class FactoryStyleSheet:
         }
     }
 
+    @staticmethod
+    def draw_section_title(title: str):
+        return ui.Label(title, height=32, style=FactoryStyleSheet.section_title, alignment=ui.Alignment.LEFT_CENTER)
+
+    @staticmethod
+    def get_row_severity_bar(color):
+        return {FactoryStyleSheet.__RECTANGLE: {FactoryStyleSheet.__BG_COLOR: color}}
+
 
     # Overview
     overview_bar_bg = {
@@ -130,10 +138,6 @@ class FactoryStyleSheet:
             __FONT_WEIGHT: __FONT_WEIGHT_BOLD
         }
     }
-
-    @staticmethod
-    def get_row_severity_bar(color):
-        return {FactoryStyleSheet.__RECTANGLE: {FactoryStyleSheet.__BG_COLOR: color}}
 
     badge_running = {
         __BUTTON: {
