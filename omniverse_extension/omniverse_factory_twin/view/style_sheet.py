@@ -30,8 +30,8 @@ class FactoryStyleSheet:
 
     border_default = color("#30363D")
 
-    text_primary = color("#E6EDF3")
-    text_secondary = color("#8B949E")
+    text_col_primary = color("#E6EDF3")
+    text_col_secondary = color("#8B949E")
     
     col_normal = color("#3FB950")
     col_warning = color("#D29922")
@@ -40,12 +40,18 @@ class FactoryStyleSheet:
     col_error_secondary = color("#2A1010")
     col_offline = color("#6E7681")
     col_idle = color("#58A6FF")
+    
+    # Text Size
+    text_title_size = 18
+    text_header_size = 16
+    text_context_size = 14
+
 
     # Common
     section_title = {
         __LABEL: {
-            __COLOR: text_primary,
-            __FONT_SIZE: 16
+            __COLOR: text_col_primary,
+            __FONT_SIZE: text_header_size 
         }
     }
 
@@ -85,15 +91,15 @@ class FactoryStyleSheet:
 
     overview_bar_label = {
         __LABEL: {
-            __COLOR: text_secondary,
-            __FONT_SIZE: 14,
+            __COLOR: text_col_secondary,
+            __FONT_SIZE: text_context_size,
         }   
     }
 
     overview_context_normal = {
         __LABEL: {
-            __COLOR: text_secondary,
-            __FONT_SIZE: 18,
+            __COLOR: text_col_secondary,
+            __FONT_SIZE: text_title_size,
             __FONT_WEIGHT: __FONT_WEIGHT_BOLD
         }
     }
@@ -101,7 +107,7 @@ class FactoryStyleSheet:
     overview_context_warning = {
         __LABEL: {
             __COLOR: col_warning,
-            __FONT_SIZE: 18,
+            __FONT_SIZE: text_title_size,
             __FONT_WEIGHT: __FONT_WEIGHT_BOLD
         }
     }    
@@ -109,7 +115,7 @@ class FactoryStyleSheet:
     overview_context_error = {
         __LABEL: {
             __COLOR: col_error,
-            __FONT_SIZE: 18,
+            __FONT_SIZE: text_title_size,
             __FONT_WEIGHT: __FONT_WEIGHT_BOLD
         }
     }
@@ -138,11 +144,20 @@ class FactoryStyleSheet:
 
     alert_card_name = {
         __LABEL:{
-            __COLOR: text_primary,
-            __FONT_SIZE: 12,
+            __COLOR: text_col_primary,
+            __FONT_SIZE: text_context_size,
             __FONT_WEIGHT: __FONT_WEIGHT_BOLD
         }
     }
+
+    @staticmethod
+    def alert_card_param_summary(color):
+        return {
+            FactoryStyleSheet.__LABEL:{
+                FactoryStyleSheet.__COLOR: color,
+                FactoryStyleSheet.__FONT_SIZE: FactoryStyleSheet.text_context_size
+            }
+        }
 
     # Machine info row
     machine_row_bg = {
@@ -155,23 +170,23 @@ class FactoryStyleSheet:
 
     machine_name = {
         __LABEL: {
-            __COLOR: text_primary,
-            __FONT_SIZE: 12,
+            __COLOR: text_col_primary,
+            __FONT_SIZE: text_context_size,
             __FONT_WEIGHT: __FONT_WEIGHT_BOLD
         }
     }
 
     machine_param_normal = {
         __LABEL: {
-            __COLOR: text_secondary,
-            __FONT_SIZE: 11
+            __COLOR: text_col_secondary,
+            __FONT_SIZE: text_context_size
         }
     }
 
     machine_param_warning = {
         __LABEL: {
             __COLOR: col_warning,
-            __FONT_SIZE: 11,
+            __FONT_SIZE: text_context_size,
             __FONT_WEIGHT: __FONT_WEIGHT_BOLD
         }
     }
@@ -179,7 +194,7 @@ class FactoryStyleSheet:
     machine_param_error = {
         __LABEL: {
             __COLOR: col_error,
-            __FONT_SIZE: 11,
+            __FONT_SIZE: text_context_size,
             __FONT_WEIGHT: __FONT_WEIGHT_BOLD
         }
     }
@@ -193,7 +208,7 @@ class FactoryStyleSheet:
         },
         __BUTTON_LABEL: {
             __COLOR: col_normal,
-            __FONT_SIZE: 10
+            __FONT_SIZE: text_context_size
         }
     }
 
@@ -206,7 +221,7 @@ class FactoryStyleSheet:
         },
         __BUTTON_LABEL: {
             __COLOR: col_idle,
-            __FONT_SIZE: 10
+            __FONT_SIZE: text_context_size
         }
     }
 
@@ -218,8 +233,8 @@ class FactoryStyleSheet:
             __BORDER_COLOR: border_default,
         },
         __BUTTON_LABEL: {
-            __COLOR: text_secondary,
-            __FONT_SIZE: 10
+            __COLOR: text_col_secondary,
+            __FONT_SIZE: text_context_size
         }
     }
 
@@ -232,6 +247,6 @@ class FactoryStyleSheet:
         },
         __BUTTON_LABEL: {
             __COLOR: col_offline,
-            __FONT_SIZE: 10
+            __FONT_SIZE: text_context_size
         }
     }
