@@ -7,6 +7,7 @@ class FactoryStyleSheet:
     __LABEL = "Label"
     __BUTTON = "Button"
     __BUTTON_LABEL = "Button.Label"
+    __V_STACK = "VStack"
 
     __FONT_SIZE = "font_size"
     __FONT_WEIGHT = "font_weight"
@@ -17,6 +18,9 @@ class FactoryStyleSheet:
     __BORDER_RADIUS = "border_radius"
     __BORDER_WIDTH = "border_width"
     __BORDER_COLOR = "border_color"
+    __MARGIN_LEFT = "margin_left"
+    __MARGIN_RIGHT = "margin_right"
+    __MARGIN_TOP = "margin_top"
 
 
     # Color
@@ -31,7 +35,9 @@ class FactoryStyleSheet:
     
     col_normal = color("#3FB950")
     col_warning = color("#D29922")
+    col_warning_secondary = color("#2A1E08")
     col_error = color("#F85149")
+    col_error_secondary = color("#2A1010")
     col_offline = color("#6E7681")
     col_idle = color("#58A6FF")
 
@@ -49,7 +55,16 @@ class FactoryStyleSheet:
 
     @staticmethod
     def get_row_severity_bar(color):
-        return {FactoryStyleSheet.__RECTANGLE: {FactoryStyleSheet.__BG_COLOR: color}}
+        return ui.Rectangle(
+            width=3,
+            style={
+                FactoryStyleSheet.__RECTANGLE:{
+                    FactoryStyleSheet.__BG_COLOR: color,
+                    FactoryStyleSheet.__BORDER_RADIUS: 0,
+                    FactoryStyleSheet.__BORDER_WIDTH: 0
+                }
+            }
+        )
 
 
     # Overview
@@ -95,6 +110,36 @@ class FactoryStyleSheet:
         __LABEL: {
             __COLOR: col_error,
             __FONT_SIZE: 18,
+            __FONT_WEIGHT: __FONT_WEIGHT_BOLD
+        }
+    }
+
+    # Alert
+    @staticmethod
+    def alert_card_bg(main_color, secondary_color):
+        return ui.Rectangle(style={
+            FactoryStyleSheet.__RECTANGLE:{
+                FactoryStyleSheet.__BG_COLOR: secondary_color,
+                FactoryStyleSheet.__BORDER_RADIUS: 5,
+                FactoryStyleSheet.__BORDER_WIDTH: 1,
+                FactoryStyleSheet.__BORDER_COLOR: main_color
+            }
+        })
+
+    @staticmethod
+    def alert_card_context(margin):
+        return {
+            FactoryStyleSheet.__V_STACK:{
+                FactoryStyleSheet.__MARGIN_LEFT: margin,
+                FactoryStyleSheet.__MARGIN_RIGHT: margin,
+                FactoryStyleSheet.__MARGIN_TOP: margin
+            }
+        }
+
+    alert_card_name = {
+        __LABEL:{
+            __COLOR: text_primary,
+            __FONT_SIZE: 12,
             __FONT_WEIGHT: __FONT_WEIGHT_BOLD
         }
     }

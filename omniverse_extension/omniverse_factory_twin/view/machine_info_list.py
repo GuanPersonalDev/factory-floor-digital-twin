@@ -75,7 +75,7 @@ class MachineInfoList:
         with ui.ZStack(height=32):
             ui.Rectangle(style=FactoryStyle.machine_row_bg)
             with ui.HStack(spacing=6):
-                self._severity_color_bar(main_color)
+                FactoryStyle.get_row_severity_bar(main_color)
                 ui.Spacer(width=4)
                 ui.Label(row_info.machine_id, width=90, height=32, style=FactoryStyle.machine_name, alignment=ui.Alignment.LEFT_CENTER)
                 with ui.VStack():
@@ -113,7 +113,3 @@ class MachineInfoList:
                 return FactoryStyle.machine_param_error
         return FactoryStyle.machine_param_normal
         
-
-    def _severity_color_bar(self, color):
-        with ui.ZStack(width=3):
-            ui.Rectangle(style=FactoryStyle.get_row_severity_bar(color))
