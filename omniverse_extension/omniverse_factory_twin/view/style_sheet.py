@@ -8,6 +8,7 @@ class FactoryStyleSheet:
     __BUTTON = "Button"
     __BUTTON_LABEL = "Button.Label"
     __V_STACK = "VStack"
+    __PLOT = "Plot"
 
     __FONT_SIZE = "font_size"
     __FONT_WEIGHT = "font_weight"
@@ -22,6 +23,7 @@ class FactoryStyleSheet:
     __MARGIN_RIGHT = "margin_right"
     __MARGIN_TOP = "margin_top"
 
+    __PADDING = "padding"
 
     # Color
     bg_deep = color("#0D1117")
@@ -45,6 +47,8 @@ class FactoryStyleSheet:
     text_title_size = 18
     text_header_size = 16
     text_context_size = 14
+
+    col_plot_bg = color(0, 0, 0, 0)
 
 
     # Common
@@ -156,6 +160,26 @@ class FactoryStyleSheet:
             FactoryStyleSheet.__LABEL:{
                 FactoryStyleSheet.__COLOR: color,
                 FactoryStyleSheet.__FONT_SIZE: FactoryStyleSheet.text_context_size
+            }
+        }
+
+    alert_plot_bg = {
+        __RECTANGLE:{
+            __BG_COLOR: color("#0A0A12"),
+            __BORDER_RADIUS: 4,
+            __BORDER_WIDTH: 1,
+            __BORDER_COLOR: border_default
+        }
+    }
+
+    @staticmethod
+    def plot_with_color(color):
+        return {
+            FactoryStyleSheet.__PLOT: {
+                FactoryStyleSheet.__COLOR: color,
+                FactoryStyleSheet.__BG_COLOR: FactoryStyleSheet.col_plot_bg,
+                FactoryStyleSheet.__PADDING: 0,
+                "margin": 0
             }
         }
 

@@ -16,8 +16,9 @@ from .machine_info_list import MachineInfoList, MachineInfoListData
 from .alert_machines_view import AlertMachinesView
 
 class HudPanelWidget:
-    def __init__(self):
+    def __init__(self, config: FactoryConfig):
         self._window = None
+        self._config = config
         self._factory_overview = None
         self._machine_info_list = None
         self._alert_machines_view = None
@@ -34,7 +35,7 @@ class HudPanelWidget:
         with self._window.frame:
             self._root_stack = ui.VStack(spacing=6)
             self._factory_overview = FactoryOverview()
-            self._alert_machines_view = AlertMachinesView()
+            self._alert_machines_view = AlertMachinesView(self._config)
             self._machine_info_list = MachineInfoList()
             self.render_all()
 

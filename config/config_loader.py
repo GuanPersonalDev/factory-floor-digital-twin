@@ -99,6 +99,15 @@ class FactoryConfig:
         if value >= t["warning"]:
             return self.WARNING_STATE_KEY, 1
         return self.NORMAL_STATE_KEY, 0
+    
+    def get_threshold_value(self, param: str, severity: str) -> float:
+        t = self._thresholds.get(param)
+        match severity:
+            case self.ERROR_STATE_KEY:
+                return t["error"]
+            case self.WARNING_STATE_KEY:
+                return t["warning"]
+        return 0
 
     def get_severity_color(self, severity: str) -> tuple[float, float, float]:
         colors = self._thresholds.get("severity_color", {})
