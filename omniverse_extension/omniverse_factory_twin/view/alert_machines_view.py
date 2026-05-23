@@ -193,16 +193,32 @@ class AlertMachinesView:
 
             # 補齊安全等級轉變過程的資料
             if severity_level != current_data_severity_level:
-                threshold_str = current_data.severity if current_data_severity_level > severity_level else severity
-                threshold_value = self._config.get_threshold_value(param, threshold_str)
-                current_data.data_x_y.append((x, threshold_value))
+                step = 1 if severity_level > current_data_severity_level else -1
+                severity_keys = self._config.severity_keys
+                crossings = []
+                l = current_data_severity_level
+                while l != severity_level:
+                    next_l = l + step
+                    threshold_level = max(next_l, l)
+                    threshold_str = severity_keys[threshold_level]
+                    threshold_value = self._config.get_threshold_value(param, threshold_str)
+                    crossings.append((threshold_str, threshold_value))
+                    l = next_l
+                current_data.data_x_y.append((x, crossings[0][1]))
+                for i in range(len(crossings) - 1):
+                    (inter_severity, start) = crossings[i]
+                    (_, end) = crossings[i + 1]
+                    inter_data = self.SeverityPlotData(severity=inter_severity, data_x_y=[])
+                    inter_data.data_x_y.append((last_x, start))
+                    inter_data.data_x_y.append((x, end))
+                    result.append(inter_data)
                 # next severity data
                 current_data_severity_level = severity_level
                 current_data = self.SeverityPlotData(
                     severity=severity,
                     data_x_y=[]
                 )
-                current_data.data_x_y.append((last_x, threshold_value))
+                current_data.data_x_y.append((last_x, crossings[-1][1]))
                 result.append(current_data)
                 
             current_data.data_x_y.append((x, y))
