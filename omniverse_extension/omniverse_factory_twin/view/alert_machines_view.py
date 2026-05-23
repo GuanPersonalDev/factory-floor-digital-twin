@@ -149,27 +149,43 @@ class AlertMachinesView:
             # plot
             with ui.ZStack(height=self._PLOT_H):
                 ui.Rectangle(style=FactoryStyle.alert_plot_bg)
-                with ui.ZStack():
-                    with ui.HStack(height=inner_h):
+                with ui.ZStack(height=inner_h):
+                    with ui.HStack():
                         for severity_plot_data in self._separate_line_with_severity(param, data_x_y):
                             self._build_severity_plot(y_max, y_min, severity_plot_data)
                        # last_plot.title = param
                     # plot = ui.Plot(ui.Type.LINE2D, height=inner_h, style=FactoryStyle.plot_with_color(FactoryStyle.col_normal), visibleMax=y_max, visibleMin=y_min)
                     # plot.set_xy_data(data_x_y)
 
-            # threshold
+            # threshold label
             with ui.ZStack(width=38):
                 pass
             
             ui.Spacer(height=4)
             # current value
             ui.Label(str, height=self._SPACE_PLOT_SUMMARY, style=FactoryStyle.alert_card_param_summary(main_color),alignment=ui.Alignment.CENTER, word_warp=False)
+    
+    def _draw_threshold(self, param:str, inner_h, y_min, y_max):
+        with ui.ZStack(height=inner_h):
+            FactoryStyle.mouse_event_blocker()
+            self._build_threshold_plot(param, FactoryConfig.WARNING_STATE_KEY, y_min, y_max)
+            self._build_threshold_plot(param, FactoryConfig.ERROR_STATE_KEY, y_min, y_max)
+
+       
 
     @dataclass
     class SeverityPlotData:
         severity: str
         data_x_y: list[tuple[float, float]]
-    
+
+    def _build_threshold_plot(self, param: str, severity: str, y_min, y_max):
+        threshold_value = self._config.get_threshold_value(param, severity)
+        data_x_y=[(0, threshold_value),(1, threshold_value)]
+
+        plot = ui.Plot(ui.Type.LINE2D, y_min, y_max, style=FactoryStyle.plot_with_color(FactoryStyle.col_idle))
+        plot.set_xy_data(data_x_y)
+        
+
     def _separate_line_with_severity(self, param: str, data_x_y: list[tuple[int, float]]) -> list[SeverityPlotData]:
         result = []
         current_data : self.SeverityPlotData= None
@@ -238,8 +254,6 @@ class AlertMachinesView:
 
     def _build_severity_plot(self, y_max, y_min, severity_plot_data: SeverityPlotData) -> ui.Plot:
         data_count = len(severity_plot_data.data_x_y)
-        for (x, y) in severity_plot_data.data_x_y:
-            print(f"({x}, {y})")
         (main_color, secondary_color) = self._get_severity_colors(severity_plot_data.severity)
         plot = ui.Plot(ui.Type.LINE2D, y_min, y_max, width=ui.Fraction(data_count), style=FactoryStyle.plot_with_color(main_color))
         plot.set_xy_data(severity_plot_data.data_x_y)       

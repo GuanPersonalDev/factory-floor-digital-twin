@@ -48,7 +48,7 @@ class FactoryStyleSheet:
     text_header_size = 16
     text_context_size = 14
 
-    col_plot_bg = color(0, 0, 0, 0)
+    col_transparent = color(0, 0, 0, 0)
 
 
     # Common
@@ -58,6 +58,12 @@ class FactoryStyleSheet:
             __FONT_SIZE: text_header_size 
         }
     }
+
+    @staticmethod
+    def mouse_event_blocker():
+        return ui.Rectangle(style={
+            FactoryStyleSheet.__RECTANGLE:{FactoryStyleSheet.__BG_COLOR: FactoryStyleSheet.col_transparent}
+        }, opaque_for_mouse_events=True)
 
     @staticmethod
     def draw_section_title(title: str):
@@ -177,7 +183,7 @@ class FactoryStyleSheet:
         return {
             FactoryStyleSheet.__PLOT: {
                 FactoryStyleSheet.__COLOR: color,
-                FactoryStyleSheet.__BG_COLOR: FactoryStyleSheet.col_plot_bg,
+                FactoryStyleSheet.__BG_COLOR: FactoryStyleSheet.col_transparent,
                 FactoryStyleSheet.__PADDING: 0,
                 "margin": 0
             }
