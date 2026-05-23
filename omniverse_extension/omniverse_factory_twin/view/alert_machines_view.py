@@ -134,12 +134,7 @@ class AlertMachinesView:
         str = f"{param[0].upper()} {value:.1f}{unit} {alert_time}-second passed"
         (main_color, second_color) = self._get_severity_colors(severity)
 
-        y_values = [y for _, y in data_x_y]
-        data_min = min(y_values)
-        data_max = max(y_values)
-        padding = max((data_max - data_min) * 0.1, 1)
-        y_min = data_min - padding
-        y_max = data_max + padding
+        (y_min ,y_max) = self._get_value_range(param, data_x_y)
         y_range = y_max - y_min
 
         def y_pixel(value: float) -> float:
@@ -202,13 +197,14 @@ class AlertMachinesView:
                     threshold_level = max(next_l, l)
                     threshold_str = severity_keys[threshold_level]
                     threshold_value = self._config.get_threshold_value(param, threshold_str)
-                    crossings.append((threshold_str, threshold_value))
+                    crossings.append((threshold_str, threshold_value, threshold_level))
                     l = next_l
                 current_data.data_x_y.append((x, crossings[0][1]))
                 for i in range(len(crossings) - 1):
-                    (inter_severity, start) = crossings[i]
-                    (_, end) = crossings[i + 1]
-                    inter_data = self.SeverityPlotData(severity=inter_severity, data_x_y=[])
+                    (start_severity, start, start_level) = crossings[i]
+                    (end_severity, end, end_level) = crossings[i + 1]
+                    s = start_severity if start_level < end_level else end_severity
+                    inter_data = self.SeverityPlotData(severity=s, data_x_y=[])
                     inter_data.data_x_y.append((last_x, start))
                     inter_data.data_x_y.append((x, end))
                     result.append(inter_data)
@@ -224,6 +220,21 @@ class AlertMachinesView:
             current_data.data_x_y.append((x, y))
             last_x = x
         return result
+
+    def _get_value_range(self, param: str, data_x_y: list[tuple[int, float]]) -> tuple[float, float]:
+        match param:
+            case FactoryConfig.TEMPERATURE_PARAM_KEY:
+                return (0, 100)
+            case FactoryConfig.VIBRATION_PARAM_KEY:
+                return (0, 15)
+        y_values = [y for _, y in data_x_y]
+        data_min = min(y_values)
+        data_max = max(y_values)
+        padding = max((data_max - data_min) * 0.1, 1)
+        y_min = data_min - padding
+        y_max = data_max + padding
+        return (y_min, y_max)
+            
 
     def _build_severity_plot(self, y_max, y_min, severity_plot_data: SeverityPlotData) -> ui.Plot:
         data_count = len(severity_plot_data.data_x_y)
