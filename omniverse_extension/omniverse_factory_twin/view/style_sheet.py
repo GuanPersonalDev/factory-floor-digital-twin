@@ -24,6 +24,7 @@ class FactoryStyleSheet:
     __MARGIN_TOP = "margin_top"
 
     __PADDING = "padding"
+    __MARGIN = "margin"
 
     # Color
     bg_deep = color("#0D1117")
@@ -188,6 +189,14 @@ class FactoryStyleSheet:
         }
     }
 
+    empty_plot_space = {
+        __RECTANGLE: {
+            __BG_COLOR: col_transparent,
+            __PADDING: 0,
+            __MARGIN: 0
+        }
+    }
+
     @staticmethod
     def plot_with_color(color):
         return {
@@ -195,7 +204,7 @@ class FactoryStyleSheet:
                 FactoryStyleSheet.__COLOR: color,
                 FactoryStyleSheet.__BG_COLOR: FactoryStyleSheet.col_transparent,
                 FactoryStyleSheet.__PADDING: 0,
-                "margin": 0
+                FactoryStyleSheet.__MARGIN: 0
             }
         }
 

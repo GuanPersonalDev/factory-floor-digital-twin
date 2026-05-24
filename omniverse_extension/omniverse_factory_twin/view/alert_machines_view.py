@@ -19,13 +19,13 @@ class UnitAlertMachine:
     alert_param_plot: dict[str, list[tuple[int, float]]]
 
 class AlertMachinesData:
-    def get_data(self) -> list[UnitAlertMachine]:
+    def get_data(self, expect_half_count: int) -> list[UnitAlertMachine]:
         import random
         def _dummy_log(middle: float, y_min: float, y_max: float) -> list[tuple[int, float]]:
             l = []
-            half = 10 
-            i = -half
-            while i <= half:
+            start = -30
+            i = start
+            while i <= expect_half_count:
                 v = random.uniform(y_min, y_max) if i != 0 else middle
                 l.append((i, v))
                 i += 1
@@ -69,6 +69,7 @@ class AlertMachinesView:
     _SPACE_NAME_PLOT = 4
     _SPACE_PLOT_SUMMARY = 14
     _SPACE_PLOT_PLOT = 6
+    _PLOT_DATA_EXPECT_HALF_COUNT = 90 # 90 second in past, 90 second in future
 
     def __init__(self, config: FactoryConfig):
         self._data = AlertMachinesData()
@@ -80,7 +81,7 @@ class AlertMachinesView:
     def redraw(self):
         FactoryStyle.draw_section_title("Alarms:")
         ui.Spacer(height=4)
-        for unit_alert_machine in self._data.get_data():
+        for unit_alert_machine in self._data.get_data(self._PLOT_DATA_EXPECT_HALF_COUNT):
             self._build_machine_card(unit_alert_machine)
 
     def _build_machine_card(self, unit_alert: UnitAlertMachine):
@@ -137,7 +138,9 @@ class AlertMachinesView:
         (y_min ,y_max) = self._get_value_range(param, data_x_y)
         x_min = data_x_y[0][0]
         x_max = data_x_y[-1][0]
-        total_length = x_max - x_min
+        front_space = x_min -(-self._PLOT_DATA_EXPECT_HALF_COUNT)
+        back_space = x_max - self._PLOT_DATA_EXPECT_HALF_COUNT
+        total_length = 2 * self._PLOT_DATA_EXPECT_HALF_COUNT
         y_range = y_max - y_min
 
         def y_pixel(value: float) -> float:
@@ -154,8 +157,10 @@ class AlertMachinesView:
                 ui.Rectangle(style=FactoryStyle.alert_plot_bg)
                 with ui.ZStack(height=inner_h):
                     with ui.HStack():
+                        ui.Rectangle(style=FactoryStyle.empty_plot_space, width=ui.Fraction(front_space/total_length))
                         for severity_plot_data in self._separate_line_with_severity(param, data_x_y):
                             self._build_severity_plot(y_max, y_min, severity_plot_data, total_length)
+                        ui.Rectangle(style=FactoryStyle.empty_plot_space, width=ui.Fraction(back_space/total_length))
                        # last_plot.title = param
                     # plot = ui.Plot(ui.Type.LINE2D, height=inner_h, style=FactoryStyle.plot_with_color(FactoryStyle.col_normal), visibleMax=y_max, visibleMin=y_min)
                     # plot.set_xy_data(data_x_y)
