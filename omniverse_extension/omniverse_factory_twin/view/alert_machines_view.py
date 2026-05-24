@@ -191,8 +191,18 @@ class AlertMachinesView:
         current_data : self.SeverityPlotData= None
         current_data_severity_level = 0
         last_x = 0
+        last_y = 0
         for (x, y) in data_x_y:
             (severity, severity_level) = self._config.compute_severity(param, y)
+
+            if x > 0 and current_data != None:
+                current_data_severity_level = severity_level
+                current_data = self.SeverityPlotData(
+                    severity=severity,
+                    data_x_y=[]
+                )
+                current_data.data_x_y.append((last_x, last_y))
+                result.append(current_data)
 
             if current_data == None:
                 current_data_severity_level = severity_level
@@ -235,6 +245,7 @@ class AlertMachinesView:
                 
             current_data.data_x_y.append((x, y))
             last_x = x
+            last_y = y
         return result
 
     def _get_value_range(self, param: str, data_x_y: list[tuple[int, float]]) -> tuple[float, float]:
@@ -255,6 +266,10 @@ class AlertMachinesView:
     def _build_severity_plot(self, y_max, y_min, severity_plot_data: SeverityPlotData) -> ui.Plot:
         data_count = len(severity_plot_data.data_x_y)
         (main_color, secondary_color) = self._get_severity_colors(severity_plot_data.severity)
+
+        if severity_plot_data.data_x_y[0][0] > 0:
+            main_color = FactoryStyle.change_alpha(main_color, int(255*0.3))
+
         plot = ui.Plot(ui.Type.LINE2D, y_min, y_max, width=ui.Fraction(data_count), style=FactoryStyle.plot_with_color(main_color))
         plot.set_xy_data(severity_plot_data.data_x_y)       
         return plot

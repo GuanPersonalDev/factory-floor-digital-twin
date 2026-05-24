@@ -36,8 +36,10 @@ class FactoryStyleSheet:
     text_col_secondary = color("#8B949E")
     
     col_normal = color("#3FB950")
+    COL_WARNING_HEX = "#D29922"
     col_warning = color("#D29922")
     col_warning_secondary = color("#2A1E08")
+    COL_ERROR_HEX = "#F85149"
     col_error = color("#F85149")
     col_error_secondary = color("#2A1010")
     col_offline = color("#6E7681")
@@ -81,6 +83,14 @@ class FactoryStyleSheet:
                 }
             }
         )
+
+    @staticmethod
+    def change_alpha(ori_color: color, alpha: int) -> color:
+        value = int(ori_color)
+        r = value & 0xFF
+        g = (value >> 8) & 0xFF
+        b = (value >> 16) & 0xFF
+        return color(r, g, b, alpha)
 
 
     # Overview
