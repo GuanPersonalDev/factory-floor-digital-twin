@@ -135,6 +135,9 @@ class AlertMachinesView:
         (main_color, second_color) = self._get_severity_colors(severity)
 
         (y_min ,y_max) = self._get_value_range(param, data_x_y)
+        x_min = data_x_y[0][0]
+        x_max = data_x_y[-1][0]
+        total_length = x_max - x_min
         y_range = y_max - y_min
 
         def y_pixel(value: float) -> float:
@@ -152,7 +155,7 @@ class AlertMachinesView:
                 with ui.ZStack(height=inner_h):
                     with ui.HStack():
                         for severity_plot_data in self._separate_line_with_severity(param, data_x_y):
-                            self._build_severity_plot(y_max, y_min, severity_plot_data)
+                            self._build_severity_plot(y_max, y_min, severity_plot_data, total_length)
                        # last_plot.title = param
                     # plot = ui.Plot(ui.Type.LINE2D, height=inner_h, style=FactoryStyle.plot_with_color(FactoryStyle.col_normal), visibleMax=y_max, visibleMin=y_min)
                     # plot.set_xy_data(data_x_y)
@@ -195,7 +198,7 @@ class AlertMachinesView:
         for (x, y) in data_x_y:
             (severity, severity_level) = self._config.compute_severity(param, y)
 
-            if x > 0 and current_data != None:
+            if last_x <= 0 and x > 0 and current_data != None:
                 current_data_severity_level = severity_level
                 current_data = self.SeverityPlotData(
                     severity=severity,
@@ -225,14 +228,18 @@ class AlertMachinesView:
                     threshold_value = self._config.get_threshold_value(param, threshold_str)
                     crossings.append((threshold_str, threshold_value, threshold_level))
                     l = next_l
-                current_data.data_x_y.append((x, crossings[0][1]))
+                crossing_count = len(crossings)
+                x_step = (x - last_x)/(crossing_count+1)
+                last_x += x_step
+                current_data.data_x_y.append((last_x, crossings[0][1]))
                 for i in range(len(crossings) - 1):
                     (start_severity, start, start_level) = crossings[i]
                     (end_severity, end, end_level) = crossings[i + 1]
                     s = start_severity if start_level < end_level else end_severity
                     inter_data = self.SeverityPlotData(severity=s, data_x_y=[])
                     inter_data.data_x_y.append((last_x, start))
-                    inter_data.data_x_y.append((x, end))
+                    last_x += x_step
+                    inter_data.data_x_y.append((last_x, end))
                     result.append(inter_data)
                 # next severity data
                 current_data_severity_level = severity_level
@@ -263,14 +270,16 @@ class AlertMachinesView:
         return (y_min, y_max)
             
 
-    def _build_severity_plot(self, y_max, y_min, severity_plot_data: SeverityPlotData) -> ui.Plot:
+    def _build_severity_plot(self, y_max, y_min, severity_plot_data: SeverityPlotData, total_length) -> ui.Plot:
         data_count = len(severity_plot_data.data_x_y)
+        part_length = severity_plot_data.data_x_y[-1][0] - severity_plot_data.data_x_y[0][0]
+        ratio = part_length / total_length
         (main_color, secondary_color) = self._get_severity_colors(severity_plot_data.severity)
 
-        if severity_plot_data.data_x_y[0][0] > 0:
+        if severity_plot_data.data_x_y[-1][0] > 0:
             main_color = FactoryStyle.change_alpha(main_color, int(255*0.3))
 
-        plot = ui.Plot(ui.Type.LINE2D, y_min, y_max, width=ui.Fraction(data_count), style=FactoryStyle.plot_with_color(main_color))
+        plot = ui.Plot(ui.Type.LINE2D, y_min, y_max, width=ui.Fraction(ratio), style=FactoryStyle.plot_with_color(main_color))
         plot.set_xy_data(severity_plot_data.data_x_y)       
         return plot
     
