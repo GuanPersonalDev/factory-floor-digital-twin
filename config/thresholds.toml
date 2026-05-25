@@ -11,11 +11,15 @@ parameter_list = [
 unit = "°C"
 warning = 70.0
 error = 85.0
+trend_target = 65.0
+trend_tau = 30.0
 
 [vibration]
 unit = "mm/s"
 warning = 5.0
 error = 10.0
+trend_target = 2.0
+trend_tau = 1.0
 
 
 # 運作狀態定義

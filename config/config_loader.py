@@ -109,6 +109,15 @@ class FactoryConfig:
                 return t["warning"]
         return 0
 
+    def get_trend_target(self, param: str) -> float:
+        t = self._thresholds.get(param)
+        return t["trend_target"]
+
+    def get_trend_tau(self, param: str) -> float:
+        t = self._thresholds.get(param)
+        return t["trend_tau"]
+        
+
     def get_severity_color(self, severity: str) -> tuple[float, float, float]:
         colors = self._thresholds.get("severity_color", {})
         color = colors.get(severity, [1.0, 1.0, 1.0])
