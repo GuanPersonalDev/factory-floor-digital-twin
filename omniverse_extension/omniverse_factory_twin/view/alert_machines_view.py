@@ -19,13 +19,19 @@ class UnitAlertMachine:
     alert_param_plot: dict[str, list[tuple[int, float]]]
 
 class AlertMachinesData:
-    def get_data(self, expect_half_count: int) -> list[UnitAlertMachine]:
+    def __init__(self) -> None:
+        self.plot_half_data_count = 30
+
+    def set_plot_half_count(self, value: int):
+        self.plot_half_data_count = value 
+
+    def get_data(self) -> list[UnitAlertMachine]:
         import random
         def _dummy_log(middle: float, y_min: float, y_max: float) -> list[tuple[int, float]]:
             l = []
             start = -30
             i = start
-            while i <= expect_half_count:
+            while i <= self.plot_half_data_count:
                 v = random.uniform(y_min, y_max) if i != 0 else middle
                 l.append((i, v))
                 i += 1
@@ -69,11 +75,13 @@ class AlertMachinesView:
     _SPACE_NAME_PLOT = 4
     _SPACE_PLOT_SUMMARY = 14
     _SPACE_PLOT_PLOT = 6
-    _PLOT_DATA_EXPECT_HALF_COUNT = 90 # 90 second in past, 90 second in future
 
     def __init__(self, config: FactoryConfig):
+        self.plot_data_expect_half_count = 90 # 90 second in past, 90 second in future
         self._data = AlertMachinesData()
+        self._data.set_plot_half_count(self.plot_data_expect_half_count)
         self._config = config
+
 
     def binding_alert_machins_data(self, data: AlertMachinesData):
         self._data = data
@@ -81,7 +89,7 @@ class AlertMachinesView:
     def redraw(self):
         FactoryStyle.draw_section_title("Alarms:")
         ui.Spacer(height=4)
-        for unit_alert_machine in self._data.get_data(self._PLOT_DATA_EXPECT_HALF_COUNT):
+        for unit_alert_machine in self._data.get_data():
             self._build_machine_card(unit_alert_machine)
 
     def _build_machine_card(self, unit_alert: UnitAlertMachine):
@@ -138,9 +146,9 @@ class AlertMachinesView:
         (y_min ,y_max) = self._get_value_range(param, data_x_y)
         x_min = data_x_y[0][0]
         x_max = data_x_y[-1][0]
-        front_space = x_min -(-self._PLOT_DATA_EXPECT_HALF_COUNT)
-        back_space = x_max - self._PLOT_DATA_EXPECT_HALF_COUNT
-        total_length = 2 * self._PLOT_DATA_EXPECT_HALF_COUNT
+        front_space = x_min -(-self.plot_data_expect_half_count)
+        back_space = x_max - self.plot_data_expect_half_count
+        total_length = 2 * self.plot_data_expect_half_count
         y_range = y_max - y_min
 
         def y_pixel(value: float) -> float:

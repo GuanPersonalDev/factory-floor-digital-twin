@@ -30,6 +30,8 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._config = FactoryConfig()
         self._logger.enable = self._config.ENABLE_LOG
         self._log = FactoryLog()
+        self._log.update_param_log_count(FactoryConfig.PARAM_RECORD_LIMIT_COUNT)
+
         self._prim_render_manager = PrimRenderManager(self._config)
         self._all_machine = AllMachine(self._config)
         self._hud: HudPanelWidget = None
@@ -54,7 +56,7 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._hud = HudPanelWidget(self._config)
         self._hud.bind_overview_data(self._all_machine.get_overview_delegate())
         self._hud.bind_machine_info_list_data(self._all_machine.get_machine_info_list_delegate())
-
+        self._hud.bind_alert_machines_view_data(self._all_machine.get_alert_machines_view_delegate())
     
     def on_stage_event(self, event):
         if event.type == int(StageEventType.OPENED):

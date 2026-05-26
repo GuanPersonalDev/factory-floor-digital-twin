@@ -4,31 +4,52 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent)) # add roo
 from config.config_loader import FactoryConfig
 
 from collections import deque
-import time
+from datetime import datetime
 class MachineLog:
-    MAX_COUNT = 50
+    DEFAULT_MAX_COUNT = 50
 
     def __init__(self, machine_id: str):
         self._machine_id = machine_id
-        self._logs: deque[tuple[float, dict]] = deque(maxlen=self.MAX_COUNT)
+        self._logs: deque[tuple[datetime, dict]] = deque(maxlen=self.DEFAULT_MAX_COUNT)
+
+    def set_log_count(self, limit: int):
+        self._logs = deque(self._logs, maxlen=limit)
 
     def append(self, data: dict):
-        self._logs.append((time.time(), data))
+        self._logs.append((datetime.now(), data))
 
     def get_latest_by_topic(self, topic: str) -> dict | None:
         for timestamp, data in reversed(self._logs):
             if topic in data:
                 return data
         return None
+
+    def get_history(self, topic: str, count: int) -> list[tuple[datetime, dict]]:
+        result = []
+        c = 0
+        target = min(count, len(self._logs))
+        while c < target:
+            c += 1
+            index = -c
+            result.append(self._logs[index])
+        return result
         
 class FactoryLog:
     def __init__(self):
         self._config = FactoryConfig()
         self._machines: dict[str, MachineLog] = {}
-        
+        self._param_log_count = MachineLog.DEFAULT_MAX_COUNT
+
+    def update_param_log_count(self, limit: int):
+        self._param_log_count = limit
+        for machine_log in self._machines.values():
+            machine_log.set_log_count(limit)
+       
     def record(self, machine_id: str, data: dict):
         if machine_id not in self._machines:
-            self._machines[machine_id] = MachineLog(machine_id)
+            machine_log = MachineLog(machine_id)
+            machine_log.set_log_count(self._param_log_count)
+            self._machines[machine_id] = machine_log
         self._machines[machine_id].append(data)
 
     def get_latest_mode(self, machine_id: str) -> str | None:
@@ -45,6 +66,13 @@ class FactoryLog:
             return None
         log = self._machines.get(machine_id)
         return log.get_latest_by_topic(topic)
+
+    def get_machine_topic_history(self, machine_id: str, topic: str, count: int) -> list[tuple[datetime, dict]] | None:
+        if machine_id not in self._machines:
+            return None
+        log = self._machines.get(machine_id)
+        return log.get_history(topic, count)
+       
         
         
 """

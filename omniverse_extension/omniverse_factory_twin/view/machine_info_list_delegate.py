@@ -15,7 +15,7 @@ class MachineInfoListDelegate(MachineInfoListData):
                 param.append((param_str, value, unit, severity))
 
             row_info = UnitRowInfo(
-                severity=machine.current_servity,
+                severity=machine.current_severity,
                 operation_mode=machine.current_operation_mode,
                 machine_id=machine.machine_id,
                 param_data=param

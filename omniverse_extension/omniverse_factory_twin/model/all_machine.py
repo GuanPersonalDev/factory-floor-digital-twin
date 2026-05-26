@@ -7,7 +7,7 @@ from .machine_model import MachineModel
 from ..view.factory_overview_delegate import FactoryOverviewDelegate
 from ..view.factory_overview import OverviewData
 from ..view.machine_info_list_delegate import MachineInfoListDelegate
-from ..view.machine_info_list import MachineInfoList
+from ..view.alert_machines_view_delegate import AlertMachinesViewDelegate
 
 """
 Manage all machine model
@@ -18,6 +18,7 @@ class AllMachine:
     def __init__(self, config: FactoryConfig):
         self._factory_overview_delegate = FactoryOverviewDelegate()
         self._machine_info_list_delegate = MachineInfoListDelegate()
+        self._alert_machines_view_delegate = AlertMachinesViewDelegate()
         self._machine_model_dic: dict[str, MachineModel] = {}
         for machine in config.machines:
             self._machine_model_dic[machine.machine_id] = MachineModel(machine.machine_id, config)
@@ -27,12 +28,16 @@ class AllMachine:
             machine_model.update(log)
         self._factory_overview_delegate.update(self._machine_model_dic.values())
         self._machine_info_list_delegate.update(self._machine_model_dic.values())
+        self._alert_machines_view_delegate.update(self._machine_model_dic.values(), log)
 
     def get_overview_delegate(self) -> OverviewData:
         return self._factory_overview_delegate
 
     def get_machine_info_list_delegate(self) -> MachineInfoListDelegate:
         return self._machine_info_list_delegate
+
+    def get_alert_machines_view_delegate(self) -> AlertMachinesViewDelegate:
+        return self._alert_machines_view_delegate
 
     def get_dirty_machines(self, flag: str) -> list[MachineModel]:
         result = []

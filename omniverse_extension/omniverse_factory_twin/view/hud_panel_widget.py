@@ -13,7 +13,7 @@ import omni.ui as ui
 from ..factory_log import FactoryLog
 from .factory_overview import FactoryOverview, OverviewData
 from .machine_info_list import MachineInfoList, MachineInfoListData
-from .alert_machines_view import AlertMachinesView
+from .alert_machines_view import AlertMachinesView, AlertMachinesData
 
 class HudPanelWidget:
     def __init__(self, config: FactoryConfig):
@@ -44,6 +44,9 @@ class HudPanelWidget:
     
     def bind_machine_info_list_data(self, list_data: MachineInfoListData):
         self._machine_info_list.bind_list_data(list_data)
+
+    def bind_alert_machines_view_data(self, alert_machines_view_data: AlertMachinesData):
+        self._alert_machines_view.binding_alert_machins_data(alert_machines_view_data)
  
             
     def render_all(self):

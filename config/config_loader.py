@@ -58,6 +58,8 @@ class FactoryConfig:
 
     ENABLE_LOG = True
 
+    PARAM_RECORD_LIMIT_COUNT = 180
+
     
     def __init__(self, config_dir: Optional[str] = None):
         self._configDir = Path(config_dir) if config_dir else _DEFAULT_CONFIG_DIR

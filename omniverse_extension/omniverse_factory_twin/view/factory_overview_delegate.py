@@ -20,7 +20,7 @@ class FactoryOverviewDelegate(OverviewData):
         self._warning_count = 0
         self._error_count = 0
         for machine_model in machines:
-            match machine_model.current_servity:
+            match machine_model.current_severity:
                 case FactoryConfig.WARNING_STATE_KEY:
                     self._warning_count += 1
                 case FactoryConfig.ERROR_STATE_KEY:
