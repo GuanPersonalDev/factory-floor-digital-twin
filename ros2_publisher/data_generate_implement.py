@@ -1,7 +1,8 @@
 import math, random
-
-from data_generate_base import TrendModel, NoiseModel, AnomalyModel
-
+try:
+    from .data_generate_base import TrendModel, NoiseModel, AnomalyModel
+except ImportError:
+    from data_generate_base import TrendModel, NoiseModel, AnomalyModel
 
 # Trend Model (趨勢)
 class NewtonCoolingTrend(TrendModel):

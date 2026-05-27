@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from ros2_publisher.data_generate_implement import NewtonCoolingTrend
 from config.config_loader import FactoryConfig
 # factory
 from ..factory_log import FactoryLog
@@ -7,9 +8,10 @@ from ..model.machine_model import MachineModel
 from .alert_machines_view import UnitAlertMachine, AlertMachinesData
 
 class AlertMachinesViewDelegate(AlertMachinesData):
-    def __init__(self):
+    def __init__(self, config: FactoryConfig):
         super().__init__()
         self._alert_machines: list[UnitAlertMachine] = []
+        self._config = config
 
     def get_data(self) -> list[UnitAlertMachine]:
         return self._alert_machines
@@ -43,5 +45,13 @@ class AlertMachinesViewDelegate(AlertMachinesData):
                     if param_str in data:
                         second = (ts - now).total_seconds()
                         plot_data.append((int(second), data[param_str]))
+
+
+                time_step = 1
+                for i in range(self.plot_half_data_count):
+                    future_time = i + time_step
+                    future_trend = NewtonCoolingTrend(idle=value, target=self._config.get_trend_target(param_str), tau=self._config.get_trend_tau(param_str))
+                    plot_data.append((future_time, future_trend.update(time_step)))
+                
                 alert_machine.alert_param_plot[param_str] = plot_data
 

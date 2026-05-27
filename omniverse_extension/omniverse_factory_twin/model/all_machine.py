@@ -18,7 +18,7 @@ class AllMachine:
     def __init__(self, config: FactoryConfig):
         self._factory_overview_delegate = FactoryOverviewDelegate()
         self._machine_info_list_delegate = MachineInfoListDelegate()
-        self._alert_machines_view_delegate = AlertMachinesViewDelegate()
+        self._alert_machines_view_delegate = AlertMachinesViewDelegate(config)
         self._machine_model_dic: dict[str, MachineModel] = {}
         for machine in config.machines:
             self._machine_model_dic[machine.machine_id] = MachineModel(machine.machine_id, config)
