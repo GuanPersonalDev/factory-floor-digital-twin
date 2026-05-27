@@ -143,7 +143,7 @@ class AlertMachinesView:
     def _build_param_plot(self, param: str, info: tuple, data_x_y: list[tuple[int, float]]):
         print(f"build {param} plot, data count : {len(data_x_y)}")
         (alert_time, value, severity, unit) = info
-        str = f"{param[0].upper()} {value:.1f}{unit} {alert_time}-second passed"
+        str = f"{param[0].upper()} {value:.1f}{unit} {alert_time:.0f}-second passed"
         (main_color, second_color) = self._get_severity_colors(severity)
 
         (y_min ,y_max) = self._get_value_range(param, data_x_y)
@@ -172,14 +172,7 @@ class AlertMachinesView:
                         for severity_plot_data in self._separate_line_with_severity(param, data_x_y):
                             self._build_severity_plot(y_max, y_min, severity_plot_data, total_length)
                         ui.Rectangle(style=FactoryStyle.empty_plot_space, width=ui.Fraction(back_space/total_length))
-                       # last_plot.title = param
-                    # plot = ui.Plot(ui.Type.LINE2D, height=inner_h, style=FactoryStyle.plot_with_color(FactoryStyle.col_normal), visibleMax=y_max, visibleMin=y_min)
-                    # plot.set_xy_data(data_x_y)
-
-            # threshold label
-            with ui.ZStack(width=38):
-                pass
-            
+           
             ui.Spacer(height=4)
             # current value
             ui.Label(str, height=self._SPACE_PLOT_SUMMARY, style=FactoryStyle.alert_card_param_summary(main_color),alignment=ui.Alignment.CENTER, word_warp=False)
