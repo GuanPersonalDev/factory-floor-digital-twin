@@ -84,7 +84,9 @@ class AlertMachinesView:
 
 
     def binding_alert_machins_data(self, data: AlertMachinesData):
+        expect_half_count = self._data.plot_half_data_count
         self._data = data
+        self._data.set_plot_half_count(expect_half_count)
 
     def redraw(self):
         FactoryStyle.draw_section_title("Alarms:")
@@ -139,6 +141,7 @@ class AlertMachinesView:
             ui.Label(machine_id, style=FactoryStyle.alert_card_name, alignment=ui.Alignment.CENTER)
 
     def _build_param_plot(self, param: str, info: tuple, data_x_y: list[tuple[int, float]]):
+        print(f"build {param} plot, data count : {len(data_x_y)}")
         (alert_time, value, severity, unit) = info
         str = f"{param[0].upper()} {value:.1f}{unit} {alert_time}-second passed"
         (main_color, second_color) = self._get_severity_colors(severity)
@@ -147,7 +150,7 @@ class AlertMachinesView:
         x_min = data_x_y[0][0]
         x_max = data_x_y[-1][0]
         front_space = x_min -(-self.plot_data_expect_half_count)
-        back_space = x_max - self.plot_data_expect_half_count
+        back_space = self.plot_data_expect_half_count - x_max
         total_length = 2 * self.plot_data_expect_half_count
         y_range = y_max - y_min
 

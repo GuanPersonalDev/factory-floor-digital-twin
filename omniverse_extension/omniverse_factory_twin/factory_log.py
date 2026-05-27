@@ -26,12 +26,12 @@ class MachineLog:
 
     def get_history(self, topic: str, count: int) -> list[tuple[datetime, dict]]:
         result = []
-        c = 0
-        target = min(count, len(self._logs))
-        while c < target:
-            c += 1
-            index = -c
-            result.append(self._logs[index])
+        for ts, data in reversed(self._logs):
+            if topic in data:
+                result.append((ts, data))
+                if len(result) >= count:
+                    break
+        result.reverse()
         return result
         
 class FactoryLog:
