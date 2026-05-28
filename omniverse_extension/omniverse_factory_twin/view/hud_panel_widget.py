@@ -36,16 +36,11 @@ class HudPanelWidget:
         self._machine_info_list = MachineInfoList()
 
         with self._window.frame:
-            self._root_frame = ui.Frame()
-            self._root_frame.set_build_fn(self._build_content)
+            with ui.VStack(spacing=6):
+                self._factory_overview.build()
+                self._alert_machines_view.build()
+                self._machine_info_list.build()
     
-    def _build_content(self):
-        self._root_stack = ui.VStack(spacing=6)
-        with self._root_stack:
-            self._factory_overview.redraw()
-            self._alert_machines_view.redraw()
-            self._machine_info_list.redraw()
-            
 
     def bind_overview_data(self, overview_info: OverviewData):
         self._factory_overview.bind_view_data(overview_info)
@@ -58,7 +53,9 @@ class HudPanelWidget:
  
             
     def render_all(self):
-        self._root_frame.rebuild()
+        self._factory_overview.redraw()
+        self._alert_machines_view.redraw()
+        self._machine_info_list.redraw()
 
     def destroy(self):
         if self._window:

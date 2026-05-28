@@ -67,6 +67,7 @@ class AlertMachinesData:
         ))
         return result
 
+
 class AlertMachinesView:
     _PLOT_H = 72 # plot height
     _CARD_INNER_MARGIN = 8
@@ -81,7 +82,10 @@ class AlertMachinesView:
         self._data = AlertMachinesData()
         self._data.set_plot_half_count(self.plot_data_expect_half_count)
         self._config = config
+        self._root_stack = None
 
+    def build(self):
+        self._root_stack = ui.VStack()
 
     def binding_alert_machins_data(self, data: AlertMachinesData):
         expect_half_count = self._data.plot_half_data_count
@@ -89,6 +93,11 @@ class AlertMachinesView:
         self._data.set_plot_half_count(expect_half_count)
 
     def redraw(self):
+        self._root_stack.clear()
+        with self._root_stack:
+            self._build_content()
+
+    def _build_content(self):
         FactoryStyle.draw_section_title("Alarms:")
         ui.Spacer(height=4)
         for unit_alert_machine in self._data.get_data():
@@ -189,6 +198,8 @@ class AlertMachinesView:
     class SeverityPlotData:
         severity: str
         data_x_y: list[tuple[float, float]]
+
+        
 
     def _build_threshold_plot(self, param: str, severity: str, y_min, y_max):
         threshold_value = self._config.get_threshold_value(param, severity)
