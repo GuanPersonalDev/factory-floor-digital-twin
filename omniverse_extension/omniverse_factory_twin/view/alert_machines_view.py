@@ -69,23 +69,19 @@ class AlertMachinesData:
 
 
 class AlertMachinesView:
-    _PLOT_H = 72 # plot height
-    _CARD_INNER_MARGIN = 8
-    _COLOR_STRIP_W = 3
-    _CARD_NAME_H = 18
-    _SPACE_NAME_PLOT = 4
-    _SPACE_PLOT_SUMMARY = 14
-    _SPACE_PLOT_PLOT = 6
-
     def __init__(self, config: FactoryConfig):
         self.plot_data_expect_half_count = 90 # 90 second in past, 90 second in future
         self._data = AlertMachinesData()
         self._data.set_plot_half_count(self.plot_data_expect_half_count)
         self._config = config
         self._root_stack = None
+        self._card_cache: list[MachineCard] = []
 
     def build(self):
-        self._root_stack = ui.VStack()
+        with ui.VStack():
+            FactoryStyle.draw_section_title("Alarms:")
+            ui.Spacer(height=4)
+            self._root_stack = ui.VStack()
 
     def binding_alert_machins_data(self, data: AlertMachinesData):
         expect_half_count = self._data.plot_half_data_count
@@ -93,37 +89,98 @@ class AlertMachinesView:
         self._data.set_plot_half_count(expect_half_count)
 
     def redraw(self):
-        self._root_stack.clear()
-        with self._root_stack:
-            self._build_content()
+        self._build_content()
 
     def _build_content(self):
-        FactoryStyle.draw_section_title("Alarms:")
-        ui.Spacer(height=4)
+        card_index = 0
         for unit_alert_machine in self._data.get_data():
-            self._build_machine_card(unit_alert_machine)
+            card = self._get_card(card_index)
+            card.redraw(unit_alert_machine)
+            card_index += 1
 
-    def _build_machine_card(self, unit_alert: UnitAlertMachine):
-        main_color, secondary_color = self._get_severity_colors(unit_alert.severity)
-        card_height = self._calc_card_height(len(unit_alert.alert_param_info))
-        with ui.ZStack(height=card_height):
-            FactoryStyle.alert_card_bg(main_color, secondary_color)
+        # set useless card visible false
+        while card_index < len(self._card_cache):
+            card = self._card_cache[card_index]
+            card.disable()
+            card_index += 1
+
+    def _get_card(self, index: int):
+        if index < len(self._card_cache):
+            return self._card_cache[index]
+        with self._root_stack:
+            result = MachineCard(self.plot_data_expect_half_count, self._config)
+            result.build_widget()
+        self._card_cache.append(result)
+        return result
+
+class MachineCard:
+    _PLOT_H = 72 # plot height
+    _CARD_INNER_MARGIN = 8
+    _COLOR_STRIP_W = 3
+    _CARD_NAME_H = 18
+    _SPACE_NAME_PLOT = 4
+    _SPACE_PLOT_SUMMARY = 14
+    _SPACE_PLOT_PLOT = 6
+    _PLOT_MARGIN = 4
+
+
+    def __init__(self, plot_data_expect_half_count: int, config: FactoryConfig):
+        self.plot_data_expect_half_count = plot_data_expect_half_count
+        self._config = config
+        self._root_stack = None
+        self._bg = None
+        self._name_label = None
+        self._severity_bar = None
+        self._main_stack = None
+        self._param_plot_cache = []
+
+    def set_plot_data_expect_half_count(self, count: int):
+        self.plot_data_expect_half_count = count
+
+    def build_widget(self):
+        self._root_stack = ui.ZStack()
+        with self._root_stack:
+            self._bg = FactoryStyle.alert_card_bg(FactoryStyle.col_idle, FactoryStyle.col_offline)
             with ui.HStack(spacing=0):
-                FactoryStyle.get_row_severity_bar(main_color)
+                self._severity_bar = FactoryStyle.get_row_severity_bar(FactoryStyle.col_idle)
                 with ui.VStack(spacing=0, style=FactoryStyle.alert_card_context(self._CARD_INNER_MARGIN)):
-                    self._build_card_header(unit_alert.machine_id)
+                    with ui.HStack(height=self._CARD_NAME_H):
+                        self._name_label = ui.Label("name", style=FactoryStyle.alert_card_name, alignment=ui.Alignment.CENTER)
                     ui.Spacer(height=self._SPACE_NAME_PLOT)
-
-                    for (param, param_info) in unit_alert.alert_param_info.items():
-                        param_x_y = unit_alert.alert_param_plot.get(param)
-                        self._build_param_plot(param, param_info, param_x_y)
-                        ui.Spacer(height=self._SPACE_PLOT_PLOT)
-                    
+                    self._main_stack = ui.VStack()
+                    ui.Spacer(height=self._SPACE_PLOT_PLOT)
                     self._build_export_button()
                     ui.Spacer(height=self._CARD_INNER_MARGIN)
-                        
 
-    def _get_severity_colors(self, severity: str) -> tuple:
+    def _build_export_button(self):
+        pass
+
+      
+    def disable(self):
+        self._root_stack.visible = False
+
+    def redraw(self, unit_alert: UnitAlertMachine):
+        main_color, secondary_color = MachineCard.get_severity_colors(unit_alert.severity)
+        card_height = self._calc_card_height(len(unit_alert.alert_param_info))
+        self._root_stack.height = ui.Pixel(card_height)
+        self._bg.style = FactoryStyle.alert_card_bg_style(main_color, secondary_color)
+        self._severity_bar.style = FactoryStyle.row_severity_bar_style(main_color)
+        self._name_label.text = unit_alert.machine_id
+
+        plot_index = 0
+        for (param, param_info) in unit_alert.alert_param_info.items():
+            param_x_y = unit_alert.alert_param_plot.get(param)
+            self._build_param_plot(plot_index, param, param_info, param_x_y)
+            plot_index += 1
+
+        while plot_index < len(self._param_plot_cache):
+            self._param_plot_cache[plot_index].disable()
+            plot_index += 1
+
+        self._root_stack.visible = True
+                        
+    @staticmethod
+    def get_severity_colors(severity: str) -> tuple:
         match severity:
             case FactoryConfig.WARNING_STATE_KEY:
                 return (FactoryStyle.col_warning, FactoryStyle.col_warning_secondary)
@@ -144,16 +201,57 @@ class AlertMachinesView:
 
     def _calc_single_plot_h(self):
         return self._PLOT_H + self._SPACE_PLOT_SUMMARY + self._SPACE_PLOT_PLOT
-        
-    def _build_card_header(self, machine_id: str):
-        with ui.HStack(height=self._CARD_NAME_H):
-            ui.Label(machine_id, style=FactoryStyle.alert_card_name, alignment=ui.Alignment.CENTER)
 
-    def _build_param_plot(self, param: str, info: tuple, data_x_y: list[tuple[int, float]]):
+    def _build_param_plot(self, plot_index: int, param: str, param_info: tuple, data_x_y: list[tuple[int, float]]):
+        plot = self._get_plot_stack(plot_index)
+        plot.draw(param, param_info, data_x_y)
+
+    def _get_plot_stack(self, index: int) -> "PlotView":
+        if index < len(self._param_plot_cache):
+            return self._param_plot_cache[index]
+
+        h = self._calc_single_plot_h()
+        with self._main_stack:
+            result = PlotView(h, self.plot_data_expect_half_count, self._config)
+            result.build(self._SPACE_PLOT_SUMMARY, self._PLOT_H, self._PLOT_MARGIN)
+            self._param_plot_cache.append(result)
+        return result
+
+class PlotView:
+    def __init__(self, height: float, plot_half_count: int, config: FactoryConfig):
+        self.plot_data_expect_half_count = plot_half_count
+        self._config = config
+        self._total_height = height
+        self._root_stack  = None
+        self._main_stack = None
+        self._front_space = None
+        self._back_space = None
+        self._severity_plot_cache = []
+        self._summary_label = None
+
+    def build(self, space_plot_summary, plot_height, plot_margin):
+        inner_h = plot_height - plot_margin*2
+        self._root_stack = ui.VStack(height=self._total_height, style={"VStack":{"margin":plot_margin}})
+        with self._root_stack:
+            with ui.ZStack(height=plot_height):
+                ui.Rectangle(style=FactoryStyle.alert_plot_bg)
+                with ui.ZStack(height=inner_h):
+                    with ui.HStack():
+                        self._front_space = ui.Rectangle(style=FactoryStyle.empty_plot_space, width=ui.Fraction(0))
+                        self._main_stack = ui.HStack()
+                        self._back_space = ui.Rectangle(style=FactoryStyle.empty_plot_space, width=ui.Fraction(0))
+            ui.Spacer(height=4)
+            self._summary_label = ui.Label("SUMMARY", height=space_plot_summary, style=FactoryStyle.alert_card_param_summary(FactoryStyle.col_idle),alignment=ui.Alignment.CENTER, word_warp=False)
+    
+    def disable(self):
+        self._root_stack.visible = False
+            
+
+    def draw(self, param: str, param_info: tuple, data_x_y: list[tuple[int, float]]):
         print(f"build {param} plot, data count : {len(data_x_y)}")
-        (alert_time, value, severity, unit) = info
-        str = f"{param[0].upper()} {value:.1f}{unit} {alert_time:.0f}-second passed"
-        (main_color, second_color) = self._get_severity_colors(severity)
+        (alert_time, value, severity, unit) = param_info
+        summary_text = f"{param[0].upper()} {value:.1f}{unit} {alert_time:.0f}-second passed"
+        (main_color, second_color) = MachineCard.get_severity_colors(severity)
 
         (y_min ,y_max) = self._get_value_range(param, data_x_y)
         x_min = data_x_y[0][0]
@@ -161,53 +259,27 @@ class AlertMachinesView:
         front_space = x_min -(-self.plot_data_expect_half_count)
         back_space = self.plot_data_expect_half_count - x_max
         total_length = 2 * self.plot_data_expect_half_count
-        y_range = y_max - y_min
 
-        def y_pixel(value: float) -> float:
-            return self._PLOT_H * ( 1 - (value - y_min) / y_range)
+        self._front_space.width = ui.Fraction(front_space/total_length)
 
-        plot_margin = 4
-        inner_h = self._PLOT_H - plot_margin*2
+        with self._main_stack:
+            plot_index = 0
+            for severity_plot_data in self._separate_line_with_severity(param, data_x_y):
+                self._draw_severity_plot(plot_index, y_max, y_min, severity_plot_data, total_length)
+                plot_index += 1
+            while plot_index < len(self._severity_plot_cache):
+                self._severity_plot_cache[plot_index].visible = False
+                plot_index += 1
 
-        h = self._calc_single_plot_h()
-        with ui.VStack(height=h, style={"VStack":{"margin":plot_margin}}):
-            # ui.Spacer()
-            # plot
-            with ui.ZStack(height=self._PLOT_H):
-                ui.Rectangle(style=FactoryStyle.alert_plot_bg)
-                with ui.ZStack(height=inner_h):
-                    with ui.HStack():
-                        ui.Rectangle(style=FactoryStyle.empty_plot_space, width=ui.Fraction(front_space/total_length))
-                        for severity_plot_data in self._separate_line_with_severity(param, data_x_y):
-                            self._build_severity_plot(y_max, y_min, severity_plot_data, total_length)
-                        ui.Rectangle(style=FactoryStyle.empty_plot_space, width=ui.Fraction(back_space/total_length))
-           
-            ui.Spacer(height=4)
-            # current value
-            ui.Label(str, height=self._SPACE_PLOT_SUMMARY, style=FactoryStyle.alert_card_param_summary(main_color),alignment=ui.Alignment.CENTER, word_warp=False)
-    
-    def _draw_threshold(self, param:str, inner_h, y_min, y_max):
-        with ui.ZStack(height=inner_h):
-            FactoryStyle.mouse_event_blocker()
-            self._build_threshold_plot(param, FactoryConfig.WARNING_STATE_KEY, y_min, y_max)
-            self._build_threshold_plot(param, FactoryConfig.ERROR_STATE_KEY, y_min, y_max)
-
-       
+        self._back_space.width = ui.Fraction(back_space/total_length)
+        self._summary_label.text = summary_text
+        self._summary_label.style = FactoryStyle.alert_card_param_summary(main_color)
+        self._root_stack.visible = True
 
     @dataclass
     class SeverityPlotData:
         severity: str
         data_x_y: list[tuple[float, float]]
-
-        
-
-    def _build_threshold_plot(self, param: str, severity: str, y_min, y_max):
-        threshold_value = self._config.get_threshold_value(param, severity)
-        data_x_y=[(0, threshold_value),(1, threshold_value)]
-
-        plot = ui.Plot(ui.Type.LINE2D, y_min, y_max, style=FactoryStyle.plot_with_color(FactoryStyle.col_idle))
-        plot.set_xy_data(data_x_y)
-        
 
     def _separate_line_with_severity(self, param: str, data_x_y: list[tuple[int, float]]) -> list[SeverityPlotData]:
         result = []
@@ -290,19 +362,40 @@ class AlertMachinesView:
         return (y_min, y_max)
             
 
-    def _build_severity_plot(self, y_max, y_min, severity_plot_data: SeverityPlotData, total_length) -> ui.Plot:
-        data_count = len(severity_plot_data.data_x_y)
+    def _draw_severity_plot(self, index: int, y_max, y_min, severity_plot_data: SeverityPlotData, total_length):
+        plot = self._get_plot_stack(index)
         part_length = severity_plot_data.data_x_y[-1][0] - severity_plot_data.data_x_y[0][0]
         ratio = part_length / total_length
-        (main_color, secondary_color) = self._get_severity_colors(severity_plot_data.severity)
+        (main_color, secondary_color) = MachineCard.get_severity_colors(severity_plot_data.severity)
 
         if severity_plot_data.data_x_y[-1][0] > 0:
             main_color = FactoryStyle.change_alpha(main_color, int(255*0.3))
 
-        plot = ui.Plot(ui.Type.LINE2D, y_min, y_max, width=ui.Fraction(ratio), style=FactoryStyle.plot_with_color(main_color))
+        plot.scale_min = y_min
+        plot.scale_max = y_max
+        plot.width = ui.Fraction(ratio)
+        plot.style = FactoryStyle.plot_with_color(main_color)
         plot.set_xy_data(severity_plot_data.data_x_y)       
-        return plot
+        plot.visible = True
     
+    def _get_plot_stack(self, index: int):
+        if index < len(self._severity_plot_cache):
+            return self._severity_plot_cache[index]
+        result = ui.Plot(ui.Type.LINE2D, 0, 100, width=ui.Fraction(0), style=FactoryStyle.plot_with_color(FactoryStyle.col_idle))
+        self._severity_plot_cache.append(result)
+        return result
 
-    def _build_export_button(self):
-        pass
+    def _draw_threshold(self, param:str, inner_h, y_min, y_max):
+        with ui.ZStack(height=inner_h):
+            FactoryStyle.mouse_event_blocker()
+            self._build_threshold_plot(param, FactoryConfig.WARNING_STATE_KEY, y_min, y_max)
+            self._build_threshold_plot(param, FactoryConfig.ERROR_STATE_KEY, y_min, y_max)
+
+    
+    def _build_threshold_plot(self, param: str, severity: str, y_min, y_max):
+        threshold_value = self._config.get_threshold_value(param, severity)
+        data_x_y=[(0, threshold_value),(1, threshold_value)]
+
+        plot = ui.Plot(ui.Type.LINE2D, y_min, y_max, style=FactoryStyle.plot_with_color(FactoryStyle.col_idle))
+        plot.set_xy_data(data_x_y)
+ 

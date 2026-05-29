@@ -76,14 +76,18 @@ class FactoryStyleSheet:
     def get_row_severity_bar(color):
         return ui.Rectangle(
             width=3,
-            style={
-                FactoryStyleSheet.__RECTANGLE:{
+            style=FactoryStyleSheet.row_severity_bar_style(color)
+        )
+
+    @staticmethod
+    def row_severity_bar_style(color):
+        return {
+                    FactoryStyleSheet.__RECTANGLE:{
                     FactoryStyleSheet.__BG_COLOR: color,
                     FactoryStyleSheet.__BORDER_RADIUS: 0,
                     FactoryStyleSheet.__BORDER_WIDTH: 0
-                }
-            }
-        )
+                    }
+               }
 
     @staticmethod
     def change_alpha(ori_color: color, alpha: int) -> color:
@@ -144,14 +148,18 @@ class FactoryStyleSheet:
     # Alert
     @staticmethod
     def alert_card_bg(main_color, secondary_color):
-        return ui.Rectangle(style={
+        return ui.Rectangle(style=FactoryStyleSheet.alert_card_bg_style(main_color, secondary_color))
+
+    @staticmethod
+    def alert_card_bg_style(main_color, secondary_color):
+        return {
             FactoryStyleSheet.__RECTANGLE:{
                 FactoryStyleSheet.__BG_COLOR: secondary_color,
                 FactoryStyleSheet.__BORDER_RADIUS: 5,
                 FactoryStyleSheet.__BORDER_WIDTH: 1,
                 FactoryStyleSheet.__BORDER_COLOR: main_color
             }
-        })
+        }
 
     @staticmethod
     def alert_card_context(margin):
