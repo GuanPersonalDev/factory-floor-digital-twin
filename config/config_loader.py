@@ -24,12 +24,19 @@ class MachineConfig:
         self.machine_id = data["machine_id"]
         self.display_name = data["display_name"]
         self.usd_prim_path = data["usd_prim_path"]
+        self.zone = data.get("zone", "")
 
     def get_ros_topic(self, param: str) -> str:
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).parent.parent))
         from config.topic_resolver import get_ros2_topic
         return get_ros2_topic(self.machine_id, param)
 
     def get_mqtt_topic(self, param: str) -> str:
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).parent.parent))
         from config.topic_resolver import get_mqtt_topic
         return get_mqtt_topic(self.machine_id, param)
 
@@ -145,6 +152,16 @@ class FactoryConfig:
     @property
     def machines(self) -> list[MachineConfig]:
         return self._machines
+
+    @property
+    def zone_prim_map(self) -> dict[str, list[str]]:
+        """return {"ZoneA": [prim_path, ...], "ZoneB": [prim_path, ...]}"""
+        result = {}
+        for m in self._machines:
+            if m.zone not in result:
+                result[m.zone] = []
+            result[m.zone].append(m.usd_prim_path)
+        return result
     
     @property
     def parameters(self) -> list[str]:
@@ -216,3 +233,10 @@ if __name__ == "__main__":
     for mode, severity in resolve_cases:
         color = config.resolve_color(mode, severity)
         print(f"\tmode={mode:8s} severity={severity:7s} -> color={color}")
+
+    print("\n--- Zone machine list test ---")
+    for (zone, prim_path_list) in config.zone_prim_map.items():
+        print(f"zone : {zone}")
+        for path in prim_path_list:
+            print(f"\t{path}")
+        
