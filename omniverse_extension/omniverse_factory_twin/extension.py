@@ -8,6 +8,7 @@ from config.topic_resolver import parse_mqtt_topic, get_all_machines_mqtt_patter
 # omniverse lib
 import omni.usd
 from omni.usd import StageEventType
+from pxr import Gf
 
 # tools
 from .base_extension import BaseMqttExtension
@@ -16,6 +17,7 @@ from omniverse_extension.tool.debug import DebugLogger
 # factory project
 from .model.machine_model import MachineModel
 from .model.all_machine import AllMachine
+from .model.factory_map import compute_layout
 from .factory_log import FactoryLog
 from .prim_render_manager import PrimRenderManager
 from .view.hud_panel_widget import HudPanelWidget
@@ -57,6 +59,31 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._hud.bind_overview_data(self._all_machine.get_overview_delegate())
         self._hud.bind_machine_info_list_data(self._all_machine.get_machine_info_list_delegate())
         self._hud.bind_alert_machines_view_data(self._all_machine.get_alert_machines_view_delegate())
+        self._check_factory_map()
+
+    def _check_factory_map(self):
+        stage = omni.usd.get_context().get_stage()
+        layout_info = compute_layout(stage, self._config.zone_prim_map)
+        self._logger.log(f"[Factory Twin] Mini map canvas range:")
+        self._log_all_range(layout_info.world_range)
+        for (zone_id, zone_info) in layout_info.zones.items():
+            self._logger.log(f"[Factory Twin] {zone_id} range:")
+            self._log_all_range(zone_info.world_range)
+            for machine_info in zone_info.machines:
+                self._logger.log(f"[Factory Twin] {machine_info.machine_id} range:")
+                self._log_all_range(machine_info.world_range)
+
+    def _log_all_range(self, world_range):
+        self._log_range(world_range, 0, "X")
+        self._log_range(world_range, 1, "Y")
+        self._log_range(world_range, 2, "Z")
+       
+
+    def _log_range(self, world_range, index, label):
+        min = world_range.GetMin()[index]
+        max = world_range.GetMax()[index]
+        self._logger.log(f"[Factory Twin] {label}: {min:.2f} ~ {max:.2f}")
+        
     
     def on_stage_event(self, event):
         if event.type == int(StageEventType.OPENED):
