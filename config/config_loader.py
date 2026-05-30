@@ -154,13 +154,13 @@ class FactoryConfig:
         return self._machines
 
     @property
-    def zone_prim_map(self) -> dict[str, list[str]]:
-        """return {"ZoneA": [prim_path, ...], "ZoneB": [prim_path, ...]}"""
+    def zone_prim_map(self) -> dict[str, list[tuple[str, str]]]:
+        """return {"ZoneA": [(machine_id, prim_path), ...], "ZoneB": [(machine_idprim_path), ...]}"""
         result = {}
         for m in self._machines:
             if m.zone not in result:
                 result[m.zone] = []
-            result[m.zone].append(m.usd_prim_path)
+            result[m.zone].append((m.machine_id, m.usd_prim_path))
         return result
     
     @property
