@@ -248,7 +248,6 @@ class PlotView:
             
 
     def draw(self, param: str, param_info: tuple, data_x_y: list[tuple[int, float]]):
-        print(f"build {param} plot, data count : {len(data_x_y)}")
         (alert_time, value, severity, unit) = param_info
         summary_text = f"{param[0].upper()} {value:.1f}{unit} {alert_time:.0f}-second passed"
         (main_color, second_color) = MachineCard.get_severity_colors(severity)
