@@ -9,6 +9,10 @@ from ..view.factory_overview import OverviewData
 from ..view.machine_info_list_delegate import MachineInfoListDelegate
 from ..view.alert_machines_view_delegate import AlertMachinesViewDelegate
 
+from .factory_map import compute_layout
+from ..view.factory_mini_map_delegate import FactoryMiniMapDelegate
+from ..view.factory_mini_map_view import FactoryMiniMapData
+
 """
 Manage all machine model
 update and setting dirty flag to machine if it changed,
@@ -22,6 +26,17 @@ class AllMachine:
         self._machine_model_dic: dict[str, MachineModel] = {}
         for machine in config.machines:
             self._machine_model_dic[machine.machine_id] = MachineModel(machine.machine_id, config)
+
+        self._mini_map_delegate = None
+
+    def build_stage_elements(self, stage, config: FactoryConfig):
+        layout_info = compute_layout(stage, config.zone_prim_map)
+        print(f"Layout info : range[{layout_info.world_range}]")
+        for (_, zone_info) in layout_info.zones.items():
+            print(f"zone info : id[{zone_info.zone_id}], range[{zone_info.world_range}]")
+            for machine_info in zone_info.machines:
+                print(f"machine info : id[{machine_info.machine_id}], range[{machine_info.world_range}]")
+        self._mini_map_delegate = FactoryMiniMapDelegate(layout_info)
 
     def update(self, log: FactoryLog):
         for machine_model in self._machine_model_dic.values():
@@ -38,6 +53,9 @@ class AllMachine:
 
     def get_alert_machines_view_delegate(self) -> AlertMachinesViewDelegate:
         return self._alert_machines_view_delegate
+
+    def get_mini_map_delegate(self) -> FactoryMiniMapData:
+        return self._mini_map_delegate
 
     def get_dirty_machines(self, flag: str) -> list[MachineModel]:
         result = []

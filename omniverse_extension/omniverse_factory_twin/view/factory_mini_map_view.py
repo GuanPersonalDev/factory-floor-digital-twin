@@ -13,6 +13,10 @@ class MiniMapRect:
     width: float
     height: float   
 
+    def __str__(self) -> str:
+        return f"x: {self.x}, y: {self.y}, width: {self.width}, height: {self.height}"
+        pass
+
 @dataclass
 class MachineRect:
     machine_id: str
@@ -91,8 +95,8 @@ class RectWidgets:
 
 class FactoryMiniMapView:
 
-    CANVAS_W = 900
-    CANVAS_H = 300
+    CANVAS_W = 300
+    CANVAS_H = 600
     SCALE_MIN = 0.3
     SCANE_MAX = 5.0
     LOD_MACHINE_THRESHOLD = 0.8
@@ -104,15 +108,17 @@ class FactoryMiniMapView:
         self._data: FactoryMiniMapData = FactoryMiniMapData()
 
         self._canvas_placer = None
-        self._zone_widget_collection = RectWidgets()
-        self._machine_widget_collection = RectWidgets()
+        self._zone_widget_collection: dict[str, RectWidgets] = {}
+        self._machine_widget_collection: dict[str, RectWidgets] = {}
 
+        self._ratio_3d_to_canvas :float = 1
         self._scale = 1
 
     def bind_mini_map_data(self, data: FactoryMiniMapData):
         self._data = data
 
     def build(self):
+        self._compute_ratio_3d_to_canvas()
         self._viewport_window = vp_util.get_active_viewport_window()
         self._overlay_frame = self._viewport_window.get_frame("factory_minimap")
         with self._overlay_frame:
@@ -136,29 +142,44 @@ class FactoryMiniMapView:
                                         self._build_zones()
                                         self._build_machines()
                         ui.Spacer()
+    
+    def _compute_ratio_3d_to_canvas(self):
+        factory_rect = self._data.factory_rect
+        sw = factory_rect.rect.width
+        sh = factory_rect.rect.height
+        rw = self.CANVAS_W / sw
+        rh = self.CANVAS_H / sh
+        self._ratio_3d_to_canvas = min(rw, rh)
 
     def _build_zones(self):
         for zone_id, zone in self._data.factory_rect.zones.items():
             zone_relative_rect = self._to_pixel(zone.rect)
-            self._zone_widget_collection.generate_rect(zone_id, zone_relative_rect, FactoryStyle.col_warning)
+            rect = self._build_rect_widget(zone_id, zone_relative_rect, FactoryStyle.col_mini_map_bg)
+            self._zone_widget_collection[zone_id] = rect
 
     def _build_machines(self):
         for _, zone in self._data.factory_rect.zones.items():
             for machine in zone.machines:
                 machine_relative_rect = self._to_pixel(machine.rect)
-                self._machine_widget_collection.generate_rect(machine.machine_id, machine_relative_rect, FactoryStyle.col_error)
+                rect = self._build_rect_widget(machine.machine_id, machine_relative_rect, FactoryStyle.col_mini_map_bg)
+                self._machine_widget_collection[machine.machine_id] = rect
+
+    def _build_rect_widget(self, id: str, relative_rect: MiniMapRect, color) -> RectWidgets:
+        rect = RectWidgets()
+        rect.generate_rect(id, relative_rect, color)
+        return rect
 
     def _to_pixel(self, rect: MiniMapRect):
-        factory_rect = self._data.factory_rect
-        actual_width = factory_rect.rect.width
-        actual_height = factory_rect.rect.height
+        # factory_rect = self._data.factory_rect
+        # actual_width = factory_rect.rect.width
+        # actual_height = factory_rect.rect.height
 
-        canvas_width = self.CANVAS_W * self._scale
-        canvas_height = self.CANVAS_H * self._scale
+        # canvas_width = self.CANVAS_W * self._scale
+        # canvas_height = self.CANVAS_H * self._scale
 
-        scale_x = canvas_width / actual_width
-        scale_y = canvas_height / actual_height
-        uniform_scale = min(scale_x, scale_y)
+        # scale_x = canvas_width / actual_width
+        # scale_y = canvas_height / actual_height
+        uniform_scale = self._ratio_3d_to_canvas * self._scale
 
         pixel_x = rect.x * uniform_scale
         pixel_y = rect.y * uniform_scale

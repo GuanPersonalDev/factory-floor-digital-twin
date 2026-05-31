@@ -56,6 +56,10 @@ class FactoryTwinExtension(BaseMqttExtension):
 
     def init_components(self):
         self._logger.log(f"[Factory Twin] init components")
+
+        stage = omni.usd.get_context().get_stage()
+        self._all_machine.build_stage_elements(stage, self._config)
+
         self._prim_render_manager.init_source()
         self._hud = HudPanelWidget(self._config)
         self._hud.bind_overview_data(self._all_machine.get_overview_delegate())
@@ -63,6 +67,7 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._hud.bind_alert_machines_view_data(self._all_machine.get_alert_machines_view_delegate())
 
         self._mini_map_view = FactoryMiniMapView()
+        self._mini_map_view.bind_mini_map_data(self._all_machine.get_mini_map_delegate())
         self._mini_map_view.build()
 
     def on_stage_event(self, event):

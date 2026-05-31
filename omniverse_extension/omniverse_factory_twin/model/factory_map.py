@@ -30,7 +30,8 @@ def compute_layout(stage, zone_prim_map: dict[str, list[tuple[str, str]]]) -> Ca
         zone_range = None
         machines = []
         for machine_id, prim_path in machine_entries:
-            prim = stage.GetPrimAtPath(prim_path)
+            fixed_path = f"{prim_path}/geometry"
+            prim = stage.GetPrimAtPath(fixed_path)
             if not prim.IsValid():
                 continue
             machine_range = bbox_cache.ComputeWorldBound(prim).ComputeAlignedBox()
