@@ -21,6 +21,7 @@ from .model.factory_map import compute_layout
 from .factory_log import FactoryLog
 from .prim_render_manager import PrimRenderManager
 from .view.hud_panel_widget import HudPanelWidget
+from .view.factory_mini_map_view import FactoryMiniMapView
 
 class FactoryTwinExtension(BaseMqttExtension):
 
@@ -37,6 +38,7 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._prim_render_manager = PrimRenderManager(self._config)
         self._all_machine = AllMachine(self._config)
         self._hud: HudPanelWidget = None
+        self._mini_map_view: FactoryMiniMapView = None
         self._stage_event_sub = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
             self.on_stage_event,
             name="factory twin stage ready"
@@ -59,32 +61,10 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._hud.bind_overview_data(self._all_machine.get_overview_delegate())
         self._hud.bind_machine_info_list_data(self._all_machine.get_machine_info_list_delegate())
         self._hud.bind_alert_machines_view_data(self._all_machine.get_alert_machines_view_delegate())
-        self._check_factory_map()
 
-    def _check_factory_map(self):
-        stage = omni.usd.get_context().get_stage()
-        layout_info = compute_layout(stage, self._config.zone_prim_map)
-        self._logger.log(f"[Factory Twin] Mini map canvas range:")
-        self._log_all_range(layout_info.world_range)
-        for (zone_id, zone_info) in layout_info.zones.items():
-            self._logger.log(f"[Factory Twin] {zone_id} range:")
-            self._log_all_range(zone_info.world_range)
-            for machine_info in zone_info.machines:
-                self._logger.log(f"[Factory Twin] {machine_info.machine_id} range:")
-                self._log_all_range(machine_info.world_range)
+        self._mini_map_view = FactoryMiniMapView()
+        self._mini_map_view.build()
 
-    def _log_all_range(self, world_range):
-        self._log_range(world_range, 0, "X")
-        self._log_range(world_range, 1, "Y")
-        self._log_range(world_range, 2, "Z")
-       
-
-    def _log_range(self, world_range, index, label):
-        min = world_range.GetMin()[index]
-        max = world_range.GetMax()[index]
-        self._logger.log(f"[Factory Twin] {label}: {min:.2f} ~ {max:.2f}")
-        
-    
     def on_stage_event(self, event):
         if event.type == int(StageEventType.OPENED):
             if self._prim_render_manager.is_building:
@@ -111,6 +91,8 @@ class FactoryTwinExtension(BaseMqttExtension):
         finally:
             if self._hud:
                 self._hud.destroy()
+            if self._mini_map_view:
+                self._mini_map_view.destroy()
         self._logger.log("[Factory Twin] Extension end")
         self._logger = None
 

@@ -38,7 +38,7 @@ def compute_layout(stage, zone_prim_map: dict[str, list[tuple[str, str]]]) -> Ca
                 machine_id= machine_id,
                 world_range=machine_range
             ))
-        zone_range = machine_range if zone_range is None else Gf.Range3d.GetUnion(zone_range, machine_range)
+            zone_range = machine_range if zone_range is None else Gf.Range3d.GetUnion(zone_range, machine_range)
 
         if zone_range is None:
             continue

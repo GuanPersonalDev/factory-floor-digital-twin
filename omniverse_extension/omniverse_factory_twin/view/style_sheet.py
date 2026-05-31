@@ -45,6 +45,7 @@ class FactoryStyleSheet:
     col_error_secondary = color("#2A1010")
     col_offline = color("#6E7681")
     col_idle = color("#58A6FF")
+    col_mini_map_bg = color(26, 26, 26, 128)
     
     # Text Size
     text_title_size = 18
@@ -306,4 +307,28 @@ class FactoryStyleSheet:
             __COLOR: col_offline,
             __FONT_SIZE: text_context_size
         }
+    }
+
+    # Mini map
+    mini_map_bg = {
+        __RECTANGLE:{
+            __BG_COLOR: col_mini_map_bg,
+            __BORDER_RADIUS: 10,
+        }
+    }
+
+    @staticmethod
+    def mini_map_rect_bg_style(color):
+        return {
+            FactoryStyleSheet.__RECTANGLE:{
+                FactoryStyleSheet.__BG_COLOR: color,
+                FactoryStyleSheet.__BORDER_RADIUS: 5
+            }
+        }
+
+    mini_map_label = {
+        __LABEL: {
+            __COLOR: text_col_primary,
+            __FONT_SIZE: text_context_size,
+        }   
     }

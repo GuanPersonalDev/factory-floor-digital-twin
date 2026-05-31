@@ -1,9 +1,9 @@
 from pxr import Gf
 
 from ..model.factory_map import CanvasLayoutInfo
-from .factory_mini_map_view import FactoryRect, ZoneRect, MachineRect, MiniMapRect
+from .factory_mini_map_view import FactoryRect, ZoneRect, MachineRect, MiniMapRect, FactoryMiniMapData
 
-class FactoryMiniMapDelegate:
+class FactoryMiniMapDelegate(FactoryMiniMapData):
     _PADDING = 12
     def __init__(self, layout_info: CanvasLayoutInfo):
         self.factory_rect = self._compute_factory_rect(layout_info)
@@ -30,8 +30,12 @@ class FactoryMiniMapDelegate:
                 machines=machines
             )
         return FactoryRect(
-            width=scene_width,
-            height=scene_height,
+            rect=MiniMapRect(
+                x=0,
+                y=0,
+                width=scene_width,
+                height=scene_height,               
+            ),
             zones=zones
         )
 
@@ -52,9 +56,9 @@ class FactoryMiniMapDelegate:
         x = child_min[0] - parent_min[0]
         y = child_min[2] - parent_min[2]
         return (x, y)
-        
-        
-        
 
+    def get_data(self):
+        pass
+    
     def update(self, alert_machines: dict[str, str]):
         pass

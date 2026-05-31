@@ -1,4 +1,10 @@
 from dataclasses import dataclass, field
+import omni.kit.viewport.utility as vp_util
+import omni.ui as ui
+
+
+from .style_sheet import FactoryStyleSheet as FactoryStyle
+
 
 @dataclass
 class MiniMapRect:
@@ -20,6 +26,174 @@ class ZoneRect:
 
 @dataclass
 class FactoryRect:
-    width: float
-    height: float
+    rect: MiniMapRect
     zones: dict[str, ZoneRect] = field(default_factory=dict)
+
+
+class FactoryMiniMapData:
+
+    def __init__(self):
+        self.factory_rect = FactoryRect(
+            rect=MiniMapRect(
+                x=0,
+                y=0,
+                width=750,
+                height=750
+            ),
+            zones={"Test Zone": ZoneRect(
+                zone_id="Test Zone",
+                rect=MiniMapRect(x=30, y=30, width=250, height=250),
+                machines=[MachineRect(
+                    machine_id="Name",
+                    rect=MiniMapRect(x=150, y=150, width=100, height=100)
+                )]
+            )}
+        )
+
+    def get_data(self):
+        pass
+
+class RectWidgets:
+    def __init__(self):
+        self.placer = None
+        self.rect = None
+        self.bg = None
+        self.label = None
+        self.label_width = 0
+
+    def generate_rect(self, id: str, relative_rect: MiniMapRect, color):
+        self.placer = ui.Placer(offset_x=relative_rect.x, offset_y=relative_rect.y)
+        with self.placer:
+            print(f"[Mini Map Rect] Draw rect : {relative_rect.width}x{relative_rect.height}")
+            self.rect = ui.ZStack(width=ui.Pixel(relative_rect.width), height=ui.Pixel(relative_rect.height))
+            with self.rect:
+                self.bg = ui.Rectangle(style=FactoryStyle.mini_map_rect_bg_style(color))
+                self.label = ui.Label(id, alignment=ui.Alignment.CENTER_TOP, style=FactoryStyle.mini_map_label)
+
+                self.label_width = len(id) * FactoryStyle.text_context_size * 0.6
+                self._check_label_display(relative_rect.width)
+
+    def _check_label_display(self, width):
+        self.label.visible = self.label_width <= width
+
+    def redraw(self, relative_rect: MiniMapRect, display: bool):
+        if not display:
+            self.rect.visible = False
+            return
+        
+        self.placer.offset_x = relative_rect.x
+        self.placer.offset_y = relative_rect.y
+        self.rect.width = relative_rect.width
+        self.rect.height = relative_rect.height
+        self._check_label_display(relative_rect.width)
+        self.rect.visible = True
+   
+
+class FactoryMiniMapView:
+
+    CANVAS_W = 900
+    CANVAS_H = 300
+    SCALE_MIN = 0.3
+    SCANE_MAX = 5.0
+    LOD_MACHINE_THRESHOLD = 0.8
+    LOD_ZONE_THRESHOLD = 0.3   
+
+    def __init__(self):
+        self._viewport_window = None
+        self._overlay_frame = None
+        self._data: FactoryMiniMapData = FactoryMiniMapData()
+
+        self._canvas_placer = None
+        self._zone_widget_collection = RectWidgets()
+        self._machine_widget_collection = RectWidgets()
+
+        self._scale = 1
+
+    def bind_mini_map_data(self, data: FactoryMiniMapData):
+        self._data = data
+
+    def build(self):
+        self._viewport_window = vp_util.get_active_viewport_window()
+        self._overlay_frame = self._viewport_window.get_frame("factory_minimap")
+        with self._overlay_frame:
+            with ui.ZStack():
+                with ui.VStack():
+                    ui.Spacer()
+                    with ui.HStack(height=ui.Pixel(self.CANVAS_H)):
+                        with ui.Frame(
+                            width=ui.Pixel(self.CANVAS_W),
+                            height=ui.Pixel(self.CANVAS_H),
+                            # mouse_pressed_fn=self._on_mouse_pressed,
+                            # mouse_moved_fn=self._on_mouse_moved,
+                            # mouse_released_fn=self._on_mouse_released,
+                            # mouse_wheel_fn=self._on_scroll
+                        ):
+                            with ui.ZStack():
+                                ui.Rectangle(style=FactoryStyle.mini_map_bg)
+                                self._canvas_placer = ui.Placer(offset_x=0, offset_y=0)
+                                with self._canvas_placer:
+                                    with ui.ZStack():
+                                        self._build_zones()
+                                        self._build_machines()
+                        ui.Spacer()
+
+    def _build_zones(self):
+        for zone_id, zone in self._data.factory_rect.zones.items():
+            zone_relative_rect = self._to_pixel(zone.rect)
+            self._zone_widget_collection.generate_rect(zone_id, zone_relative_rect, FactoryStyle.col_warning)
+
+    def _build_machines(self):
+        for _, zone in self._data.factory_rect.zones.items():
+            for machine in zone.machines:
+                machine_relative_rect = self._to_pixel(machine.rect)
+                self._machine_widget_collection.generate_rect(machine.machine_id, machine_relative_rect, FactoryStyle.col_error)
+
+    def _to_pixel(self, rect: MiniMapRect):
+        factory_rect = self._data.factory_rect
+        actual_width = factory_rect.rect.width
+        actual_height = factory_rect.rect.height
+
+        canvas_width = self.CANVAS_W * self._scale
+        canvas_height = self.CANVAS_H * self._scale
+
+        scale_x = canvas_width / actual_width
+        scale_y = canvas_height / actual_height
+        uniform_scale = min(scale_x, scale_y)
+
+        pixel_x = rect.x * uniform_scale
+        pixel_y = rect.y * uniform_scale
+        pixel_width = rect.width * uniform_scale
+        pixel_height = rect.height * uniform_scale
+        return MiniMapRect(
+            x=pixel_x,
+            y=pixel_y,
+            width=pixel_width,
+            height=pixel_height
+        )
+ 
+        
+                        
+    def _on_mouse_pressed(self):
+        pass
+
+    def _on_mouse_moved(self):
+        pass
+
+    def _on_mouse_released(self):
+        pass
+
+    def _on_scroll(self):
+        pass
+
+    def destroy(self):
+        self._canvas_placer = None
+        self._zone_widget_collection = None
+        self._machine_widget_collection = None
+        try:
+            if self._overlay_frame:
+                self._overlay_frame.clear()
+        except:
+            pass
+        self._overlay_frame = None
+        self._viewport_window = None
+        
