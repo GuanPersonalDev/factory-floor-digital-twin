@@ -113,6 +113,9 @@ class FactoryMiniMapView:
 
         self._ratio_3d_to_canvas :float = 1
         self._scale = 1
+        self._drag_start = None
+        self._canvas_placer_offset_x = 0
+        self._canvas_placer_offset_y = 0
 
     def bind_mini_map_data(self, data: FactoryMiniMapData):
         self._data = data
@@ -129,9 +132,11 @@ class FactoryMiniMapView:
                         with ui.Frame(
                             width=ui.Pixel(self.CANVAS_W),
                             height=ui.Pixel(self.CANVAS_H),
-                            # mouse_pressed_fn=self._on_mouse_pressed,
-                            # mouse_moved_fn=self._on_mouse_moved,
-                            # mouse_released_fn=self._on_mouse_released,
+                            horizontal_clipping=True,
+                            vertical_clipping=True,
+                            mouse_pressed_fn=self._on_mouse_pressed,
+                            mouse_moved_fn=self._on_mouse_moved,
+                            mouse_released_fn=self._on_mouse_released,
                             # mouse_wheel_fn=self._on_scroll
                         ):
                             with ui.ZStack():
@@ -170,15 +175,6 @@ class FactoryMiniMapView:
         return rect
 
     def _to_pixel(self, rect: MiniMapRect):
-        # factory_rect = self._data.factory_rect
-        # actual_width = factory_rect.rect.width
-        # actual_height = factory_rect.rect.height
-
-        # canvas_width = self.CANVAS_W * self._scale
-        # canvas_height = self.CANVAS_H * self._scale
-
-        # scale_x = canvas_width / actual_width
-        # scale_y = canvas_height / actual_height
         uniform_scale = self._ratio_3d_to_canvas * self._scale
 
         pixel_x = rect.x * uniform_scale
@@ -191,17 +187,26 @@ class FactoryMiniMapView:
             width=pixel_width,
             height=pixel_height
         )
- 
-        
+    
+    def _update_layout(self):
+        self._canvas_placer.offset_x = self._canvas_placer_offset_x
+        self._canvas_placer.offset_y = self._canvas_placer_offset_y
                         
-    def _on_mouse_pressed(self):
-        pass
+    def _on_mouse_pressed(self, x, y, button, modifier):
+        if button == 0:
+            self._drag_start = (x, y)
 
-    def _on_mouse_moved(self):
-        pass
+    def _on_mouse_moved(self, x, y, modifier, dragging):
+        if dragging and self._drag_start:
+            dx = x - self._drag_start[0]
+            dy = y - self._drag_start[1]
+            self._canvas_placer_offset_x += dx
+            self._canvas_placer_offset_y += dy
+            self._drag_start = (x, y)
+            self._update_layout()
 
-    def _on_mouse_released(self):
-        pass
+    def _on_mouse_released(self, x, y, button, modifier):
+        self._drag_start = None
 
     def _on_scroll(self):
         pass
