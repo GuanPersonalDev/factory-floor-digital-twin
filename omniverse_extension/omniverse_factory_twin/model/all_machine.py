@@ -31,19 +31,16 @@ class AllMachine:
 
     def build_stage_elements(self, stage, config: FactoryConfig):
         layout_info = compute_layout(stage, config.zone_prim_map)
-        print(f"Layout info : range[{layout_info.world_range}]")
-        for (_, zone_info) in layout_info.zones.items():
-            print(f"zone info : id[{zone_info.zone_id}], range[{zone_info.world_range}]")
-            for machine_info in zone_info.machines:
-                print(f"machine info : id[{machine_info.machine_id}], range[{machine_info.world_range}]")
         self._mini_map_delegate = FactoryMiniMapDelegate(layout_info)
 
     def update(self, log: FactoryLog):
         for machine_model in self._machine_model_dic.values():
             machine_model.update(log)
-        self._factory_overview_delegate.update(self._machine_model_dic.values())
-        self._machine_info_list_delegate.update(self._machine_model_dic.values())
-        self._alert_machines_view_delegate.update(self._machine_model_dic.values(), log)
+        machines = self._machine_model_dic.values()
+        self._factory_overview_delegate.update(machines)
+        self._machine_info_list_delegate.update(machines)
+        self._alert_machines_view_delegate.update(machines, log)
+        self._mini_map_delegate.update(machines)
 
     def get_overview_delegate(self) -> OverviewData:
         return self._factory_overview_delegate
