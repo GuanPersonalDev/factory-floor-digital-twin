@@ -84,6 +84,7 @@ class FactoryTwinExtension(BaseMqttExtension):
             self._prim_render_manager.update_machine_color(machine.machine_id, machine.current_color)
         if self._hud:
             self._hud.render_all()
+            self._mini_map_view.redraw()
             self._logger.log(f"[Factory Twin] render hud")
 
     def on_extension_shutdown(self):

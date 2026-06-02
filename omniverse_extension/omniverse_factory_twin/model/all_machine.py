@@ -40,7 +40,7 @@ class AllMachine:
         self._factory_overview_delegate.update(machines)
         self._machine_info_list_delegate.update(machines)
         self._alert_machines_view_delegate.update(machines, log)
-        self._mini_map_delegate.update(machines)
+        self._mini_map_delegate.update(self._machine_model_dic)
 
     def get_overview_delegate(self) -> OverviewData:
         return self._factory_overview_delegate

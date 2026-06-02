@@ -20,11 +20,13 @@ class MiniMapRect:
 @dataclass
 class MachineRect:
     machine_id: str
+    severity_level: int
     rect: MiniMapRect
 
 @dataclass
 class ZoneRect:
     zone_id: str
+    severity_level: int
     rect: MiniMapRect
     machines: list[MachineRect] = field(default_factory=list)
 
@@ -47,8 +49,10 @@ class FactoryMiniMapData:
             zones={"Test Zone": ZoneRect(
                 zone_id="Test Zone",
                 rect=MiniMapRect(x=30, y=30, width=250, height=250),
+                severity_level=0,
                 machines=[MachineRect(
                     machine_id="Name",
+                    severity_level=0,
                     rect=MiniMapRect(x=150, y=150, width=100, height=100)
                 )]
             )}
@@ -64,9 +68,13 @@ class RectWidgets:
         self.bg = None
         self.label = None
         self.label_width = 0
+        self.severity_level_cache = 0
+        self.color_cache = None
 
     def generate_rect(self, id: str, relative_rect: MiniMapRect, color):
         self.placer = ui.Placer(offset_x=relative_rect.x, offset_y=relative_rect.y)
+        self.severity_level_cache = 0
+        self.color_cache = color
         with self.placer:
             print(f"[Mini Map Rect] Draw rect : {relative_rect.width}x{relative_rect.height}")
             self.rect = ui.ZStack(width=ui.Pixel(relative_rect.width), height=ui.Pixel(relative_rect.height))
@@ -80,7 +88,8 @@ class RectWidgets:
     def _check_label_display(self, width):
         self.label.visible = self.label_width <= width
 
-    def redraw(self, relative_rect: MiniMapRect, display: bool):
+    # redraw positionm and size of the rect
+    def redraw_rect_info(self, relative_rect: MiniMapRect, display: bool):
         if not display:
             self.rect.visible = False
             return
@@ -91,7 +100,13 @@ class RectWidgets:
         self.rect.height = ui.Pixel(relative_rect.height)
         self._check_label_display(relative_rect.width)
         self.rect.visible = True
-   
+
+    def redraw_severity_color(self, color):
+        if color != self.color_cache:
+            self.bg.style = FactoryStyle.mini_map_rect_bg_style(color)
+            self.color_cache = color
+           
+  
 
 class FactoryMiniMapView:
 
@@ -139,7 +154,6 @@ class FactoryMiniMapView:
                             mouse_pressed_fn=self._on_mouse_pressed,
                             mouse_moved_fn=self._on_mouse_moved,
                             mouse_released_fn=self._on_mouse_released,
-                            # mouse_wheel_fn=self._on_scroll
                         ):
                             with ui.ZStack():
                                 ui.Rectangle(style=FactoryStyle.mini_map_bg)
@@ -189,6 +203,23 @@ class FactoryMiniMapView:
             width=pixel_width,
             height=pixel_height
         )
+
+    def redraw(self):
+        for zone_id, zone in self._data.factory_rect.zones.items():
+            (_, zone_color) = self._get_color_by_severity(zone.severity_level)
+            self._zone_widget_collection[zone_id].redraw_severity_color(zone_color)
+            for machine in zone.machines:
+                (machine_color, _) = self._get_color_by_severity(machine.severity_level)
+                self._machine_widget_collection[machine.machine_id].redraw_severity_color(machine_color)
+
+    def _get_color_by_severity(self, severity_level: int):
+        match severity_level:
+            case 1:
+                return (FactoryStyle.col_warning, FactoryStyle.col_warning_secondary)
+            case 2:
+                return (FactoryStyle.col_error, FactoryStyle.col_error_secondary)
+        return (FactoryStyle.col_normal , FactoryStyle.col_mini_map_bg)
+ 
     
     def _update_layout(self):
         self._canvas_placer.offset_x = self._canvas_placer_offset_x
@@ -197,12 +228,12 @@ class FactoryMiniMapView:
         for zone_id, zone in self._data.factory_rect.zones.items():
             zone_pixel_rect = self._to_pixel(zone.rect)
             display_zone = self._scale >= self.LOD_ZONE_THRESHOLD
-            self._zone_widget_collection[zone_id].redraw(zone_pixel_rect, display_zone)
+            self._zone_widget_collection[zone_id].redraw_rect_info(zone_pixel_rect, display_zone)
 
             for machine in zone.machines:
                 machine_pixel_rect = self._to_pixel(machine.rect)
                 show_machine = self._scale >= self.LOD_MACHINE_THRESHOLD
-                self._machine_widget_collection[machine.machine_id].redraw(machine_pixel_rect, show_machine)
+                self._machine_widget_collection[machine.machine_id].redraw_rect_info(machine_pixel_rect, show_machine)
             
                         
     def _on_mouse_pressed(self, x, y, button, modifier):

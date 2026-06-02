@@ -11,6 +11,7 @@ class MachineModel():
         self.machine_id = machine_id
         self.current_operation_mode: str = config.OFFLINE_MODE_KEY
         self.current_severity = self._config.NORMAL_STATE_KEY
+        self.current_severity_level = 0
         self.current_color: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
         self.current_param_dic: dict[str, tuple[float, str, str]] = {}
         self.param_severity_start_time_stamp: dict[str, datetime] = {
@@ -30,8 +31,8 @@ class MachineModel():
         self.current_operation_mode = operation_mode
 
     def calc_severity(self, log: FactoryLog):
-        servity = self._config.NORMAL_STATE_KEY
-        servity_level = 0
+        severity = self._config.NORMAL_STATE_KEY
+        severity_level = 0
         for (p, unit) in self._config.parameter_and_unit:
             if p == self._config.OPERATION_PARAM_KEY:
                 continue
@@ -39,17 +40,18 @@ class MachineModel():
             if topic == None:
                 continue
             value = topic[p]
-            tmp_servity, tmp_servity_level = self._config.compute_severity(p, value)
+            tmp_servity, tmp_severity_level = self._config.compute_severity(p, value)
             if p in self.current_param_dic:
                 ori_param_severity = self.current_param_dic[p][2]
                 if tmp_servity != ori_param_severity:
                     self.param_severity_start_time_stamp[p] = datetime.now()
 
             self.current_param_dic[p] = (value, unit, tmp_servity)
-            if tmp_servity_level > servity_level:
-                servity_level = tmp_servity_level
-                servity = tmp_servity
-        self.current_severity = servity
+            if tmp_severity_level > severity_level:
+                severity_level = tmp_severity_level
+                severity = tmp_servity
+        self.current_severity = severity
+        self.current_severity_level = severity_level
 
     def calc_color(self):
         color = self._config.resolve_color(self.current_operation_mode, self.current_severity)

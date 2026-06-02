@@ -1,5 +1,7 @@
 from pxr import Gf
 
+# factory
+from ..model.machine_model import MachineModel
 from ..model.factory_map import CanvasLayoutInfo
 from .factory_mini_map_view import FactoryRect, ZoneRect, MachineRect, MiniMapRect, FactoryMiniMapData
 
@@ -27,12 +29,14 @@ class FactoryMiniMapDelegate(FactoryMiniMapData):
                 (machine_x, machine_y) = self._calc_relative_xy(machine_pos, machine_height, scene_pos, scene_height)
                 machines.append(MachineRect(
                     machine_id = machine_info.machine_id,
+                    severity_level = 0,
                     rect=MiniMapRect(x=machine_x, y=machine_y, width=machine_width, height=machine_height)
                 ))
             zones[zone_id] = ZoneRect(
                 zone_id=zone_id,
                 rect=MiniMapRect(x=zone_x, y=zone_y, width=zone_width, height=zone_height),
-                machines=machines
+                machines=machines,
+                severity_level=0
             )
         return FactoryRect(
             rect=MiniMapRect(
@@ -67,5 +71,12 @@ class FactoryMiniMapDelegate(FactoryMiniMapData):
     def get_data(self):
         pass
     
-    def update(self, alert_machines: dict[str, str]):
-        pass
+    def update(self, machines: dict[str, MachineModel]):
+        for zone_id, zone in self.factory_rect.zones.items():
+            zone_temp_severity = 0
+            for machine in zone.machines:
+                machine_model = machines[machine.machine_id]
+                severity_level = machine_model.current_severity_level
+                machine.severity_level = severity_level
+                zone_temp_severity = max(zone_temp_severity, severity_level)
+            zone.severity_level = zone_temp_severity
