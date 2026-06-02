@@ -9,13 +9,13 @@ class FactoryMiniMapDelegate(FactoryMiniMapData):
     _PADDING = 12
     def __init__(self, layout_info: CanvasLayoutInfo):
         self.factory_rect = self._compute_factory_rect(layout_info)
-        print(f"factory rect[{self.factory_rect.rect}]")
-        for (_, zone_rect) in self.factory_rect.zones.items():
-            print(f"zone rect: id[{zone_rect.zone_id}], rect[{zone_rect.rect}]")
-            for machine_rect in zone_rect.machines:
-                print(f"machine rect: id[{machine_rect.machine_id}], rect[{machine_rect.rect}]")
 
     def _compute_factory_rect(self, layout_info: CanvasLayoutInfo) -> FactoryRect:
+        if layout_info.world_range == None:
+            return FactoryRect(
+                rect=MiniMapRect(x=0, y=0, width=100, height=100),
+                zones={}
+            )
         (scene_pos, scene_width, scene_height) = self._calc_rect_info(layout_info.world_range)
 
         zones = {}
