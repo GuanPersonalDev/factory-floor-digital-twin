@@ -87,8 +87,8 @@ class RectWidgets:
         
         self.placer.offset_x = relative_rect.x
         self.placer.offset_y = relative_rect.y
-        self.rect.width = relative_rect.width
-        self.rect.height = relative_rect.height
+        self.rect.width = ui.Pixel(relative_rect.width)
+        self.rect.height = ui.Pixel(relative_rect.height)
         self._check_label_display(relative_rect.width)
         self.rect.visible = True
    
@@ -98,7 +98,7 @@ class FactoryMiniMapView:
     CANVAS_W = 300
     CANVAS_H = 600
     SCALE_MIN = 0.3
-    SCANE_MAX = 5.0
+    SCALE_MAX = 5.0
     LOD_MACHINE_THRESHOLD = 0.8
     LOD_ZONE_THRESHOLD = 0.3   
 
@@ -112,6 +112,8 @@ class FactoryMiniMapView:
         self._machine_widget_collection: dict[str, RectWidgets] = {}
 
         self._ratio_3d_to_canvas :float = 1
+        self._mouse_x = 0.0
+        self._mouse_y = 0.0
         self._scale = 1
         self._drag_start = None
         self._canvas_placer_offset_x = 0
@@ -191,12 +193,25 @@ class FactoryMiniMapView:
     def _update_layout(self):
         self._canvas_placer.offset_x = self._canvas_placer_offset_x
         self._canvas_placer.offset_y = self._canvas_placer_offset_y
+
+        for zone_id, zone in self._data.factory_rect.zones.items():
+            zone_pixel_rect = self._to_pixel(zone.rect)
+            display_zone = self._scale >= self.LOD_ZONE_THRESHOLD
+            self._zone_widget_collection[zone_id].redraw(zone_pixel_rect, display_zone)
+
+            for machine in zone.machines:
+                machine_pixel_rect = self._to_pixel(machine.rect)
+                show_machine = self._scale >= self.LOD_MACHINE_THRESHOLD
+                self._machine_widget_collection[machine.machine_id].redraw(machine_pixel_rect, show_machine)
+            
                         
     def _on_mouse_pressed(self, x, y, button, modifier):
         if button == 0:
             self._drag_start = (x, y)
 
     def _on_mouse_moved(self, x, y, modifier, dragging):
+        self._mouse_x = x
+        self._mouse_y = y
         if dragging and self._drag_start:
             dx = x - self._drag_start[0]
             dy = y - self._drag_start[1]
@@ -208,8 +223,17 @@ class FactoryMiniMapView:
     def _on_mouse_released(self, x, y, button, modifier):
         self._drag_start = None
 
-    def _on_scroll(self):
-        pass
+    def _on_scroll(self, dx, dy, modifier):
+        scale_old = self._scale
+        zoom_factor = 1.1 if dy > 0 else 0.9
+        new_scale = max(self.SCALE_MIN, min(self.SCALE_MAX, scale_old * zoom_factor))
+
+        x = self._mouse_x
+        y = self._mouse_y
+        self._canvas_placer_offset_x = x - (x - self._canvas_placer_offset_x)/scale_old * new_scale
+        self._canvas_placer_offset_y = y - (y - self._canvas_placer_offset_y)/scale_old * new_scale
+        self._scale = new_scale
+        self._update_layout()
 
     def destroy(self):
         self._canvas_placer = None
