@@ -8,6 +8,8 @@ import omni.ui as ui
 
 # Factory
 from .style_sheet import FactoryStyleSheet as FactoryStyle
+from ..model.machine_prim_solver import get_machine_prim_path
+from omniverse_extension.tool.camera_utility import jump_to_prim
 
 @dataclass
 class UnitRowInfo:
@@ -79,8 +81,8 @@ class MachineInfoList:
         (main_color, badge_style) = self._color_and_badge(row_info)
 
         with ui.ZStack(height=32):
-            ui.Rectangle(style=FactoryStyle.machine_row_bg)
-            with ui.HStack(spacing=6):
+            ui.Button(" ", style=FactoryStyle.machine_row_bg, clicked_fn=lambda mid=row_info.machine_id: self._on_machine_row_clicked(mid))
+            with ui.HStack():
                 FactoryStyle.get_row_severity_bar(main_color)
                 ui.Spacer(width=4)
                 ui.Label(row_info.machine_id, width=90, height=32, style=FactoryStyle.machine_name, alignment=ui.Alignment.LEFT_CENTER)
@@ -93,7 +95,10 @@ class MachineInfoList:
                     style = self._get_param_style(severity)
                     str = f"{param_str[0].upper()} {value:.1f}{unit}"
                     ui.Label(str, width=75, style=style, alignment=ui.Alignment.LEFT_CENTER)
-        pass
+
+    def _on_machine_row_clicked(self, machine_id: str):
+        prim_path = get_machine_prim_path(machine_id)
+        jump_to_prim(prim_path)
 
     def _color_and_badge(self, raw_info: UnitRowInfo):
         if raw_info.operation_mode == FactoryConfig.OFFLINE_MODE_KEY:

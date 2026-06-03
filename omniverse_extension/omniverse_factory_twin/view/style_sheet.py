@@ -219,10 +219,17 @@ class FactoryStyleSheet:
 
     # Machine info row
     machine_row_bg = {
-        __RECTANGLE:{
+        __BUTTON:{
             __BG_COLOR: bg_card,
             __BORDER_RADIUS: 0,
-            __BORDER_WIDTH: 0
+            __BORDER_WIDTH: 0,
+            __MARGIN: 0
+        },
+        "Button.hovered": {
+            __BG_COLOR: col_warning
+        },
+        "Button.pressed": {
+            __BG_COLOR: col_normal
         }
     }
 
