@@ -4,6 +4,8 @@ import omni.ui as ui
 
 
 from .style_sheet import FactoryStyleSheet as FactoryStyle
+from ..model.machine_prim_solver import get_machine_prim_path
+from omniverse_extension.tool.camera_utility import jump_to_prim
 
 
 @dataclass
@@ -70,17 +72,23 @@ class RectWidgets:
         self.label_width = 0
         self.severity_level_cache = 0
         self.color_cache = None
+        self.use_button = False
 
-    def generate_rect(self, id: str, relative_rect: MiniMapRect, color):
+    def generate_rect(self, id: str, relative_rect: MiniMapRect, color, button_callback=None):
         self.placer = ui.Placer(offset_x=relative_rect.x, offset_y=relative_rect.y)
         self.severity_level_cache = 0
         self.color_cache = color
+        self.use_button = button_callback is not None
         with self.placer:
             print(f"[Mini Map Rect] Draw rect : {relative_rect.width}x{relative_rect.height}")
             self.rect = ui.ZStack(width=ui.Pixel(relative_rect.width), height=ui.Pixel(relative_rect.height))
             with self.rect:
-                self.bg = ui.Rectangle(style=FactoryStyle.mini_map_rect_bg_style(color))
-                self.label = ui.Label(id, alignment=ui.Alignment.CENTER_TOP, style=FactoryStyle.mini_map_label)
+                if self.use_button:
+                    self.bg = ui.Button(" ", style=FactoryStyle.mini_map_rect_button_style(color), clicked_fn=button_callback)
+                    self.label = ui.Label(id, alignment=ui.Alignment.CENTER, style=FactoryStyle.mini_map_label)
+                else:
+                    self.bg = ui.Rectangle(style=FactoryStyle.mini_map_rect_bg_style(color))
+                    self.label = ui.Label(id, alignment=ui.Alignment.CENTER_TOP, style=FactoryStyle.mini_map_label)
 
                 self.label_width = len(id) * FactoryStyle.text_context_size * 0.6
                 self._check_label_display(relative_rect.width)
@@ -103,7 +111,10 @@ class RectWidgets:
 
     def redraw_severity_color(self, color):
         if color != self.color_cache:
-            self.bg.style = FactoryStyle.mini_map_rect_bg_style(color)
+            if self.use_button:
+                self.bg.style = FactoryStyle.mini_map_rect_button_style(color)
+            else:
+                self.bg.style = FactoryStyle.mini_map_rect_bg_style(color)
             self.color_cache = color
            
   
@@ -175,19 +186,24 @@ class FactoryMiniMapView:
     def _build_zones(self):
         for zone_id, zone in self._data.factory_rect.zones.items():
             zone_relative_rect = self._to_pixel(zone.rect)
-            rect = self._build_rect_widget(zone_id, zone_relative_rect, FactoryStyle.col_mini_map_bg)
+            rect = self._build_rect_widget(zone_id, zone_relative_rect, FactoryStyle.col_mini_map_bg, button_callback=None)
             self._zone_widget_collection[zone_id] = rect
 
     def _build_machines(self):
         for _, zone in self._data.factory_rect.zones.items():
             for machine in zone.machines:
                 machine_relative_rect = self._to_pixel(machine.rect)
-                rect = self._build_rect_widget(machine.machine_id, machine_relative_rect, FactoryStyle.col_mini_map_bg)
+                rect = self._build_rect_widget(machine.machine_id, machine_relative_rect, FactoryStyle.col_mini_map_bg, button_callback=lambda mid=machine.machine_id: self._on_machine_rect_clicked(mid))
                 self._machine_widget_collection[machine.machine_id] = rect
 
-    def _build_rect_widget(self, id: str, relative_rect: MiniMapRect, color) -> RectWidgets:
+    def _on_machine_rect_clicked(self, machine_id):
+        prim_path = get_machine_prim_path(machine_id)
+        jump_to_prim(prim_path)
+
+
+    def _build_rect_widget(self, id: str, relative_rect: MiniMapRect, color, button_callback=None) -> RectWidgets:
         rect = RectWidgets()
-        rect.generate_rect(id, relative_rect, color)
+        rect.generate_rect(id, relative_rect, color, button_callback=button_callback)
         return rect
 
     def _to_pixel(self, rect: MiniMapRect):

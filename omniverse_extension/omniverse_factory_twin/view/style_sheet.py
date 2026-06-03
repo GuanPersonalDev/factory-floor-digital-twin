@@ -6,6 +6,8 @@ class FactoryStyleSheet:
     __RECTANGLE = "Rectangle"
     __LABEL = "Label"
     __BUTTON = "Button"
+    __BUTTON_HOVERED = "Button:hovered"
+    __BUTTON_PRESSED = "Button:pressed"
     __BUTTON_LABEL = "Button.Label"
     __V_STACK = "VStack"
     __PLOT = "Plot"
@@ -36,6 +38,7 @@ class FactoryStyleSheet:
     text_col_primary = color("#E6EDF3")
     text_col_secondary = color("#8B949E")
     
+    col_button_hover = color("#ffffff")
     col_normal = color("#3FB950")
     COL_WARNING_HEX = "#D29922"
     col_warning = color("#D29922")
@@ -331,6 +334,21 @@ class FactoryStyleSheet:
                 FactoryStyleSheet.__BG_COLOR: color,
                 FactoryStyleSheet.__BORDER_RADIUS: 5
             }
+        }
+
+    @staticmethod
+    def mini_map_rect_button_style(color):
+        return {
+            FactoryStyleSheet.__BUTTON:{
+                FactoryStyleSheet.__BG_COLOR: color,
+                FactoryStyleSheet.__BORDER_RADIUS: 5
+            },
+            FactoryStyleSheet.__BUTTON_HOVERED: {
+                FactoryStyleSheet.__BG_COLOR: color,
+                FactoryStyleSheet.__BORDER_RADIUS: 5,
+                FactoryStyleSheet.__BORDER_WIDTH: 1.5,
+                FactoryStyleSheet.__BORDER_COLOR: FactoryStyleSheet.col_button_hover
+            },
         }
 
     mini_map_label = {
