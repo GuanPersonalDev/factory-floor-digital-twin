@@ -144,6 +144,7 @@ class FactoryMiniMapView:
         self._drag_start = None
         self._canvas_placer_offset_x = 0
         self._canvas_placer_offset_y = 0
+        self._disable_selection_token = None
 
     def bind_mini_map_data(self, data: FactoryMiniMapData):
         self._data = data
@@ -153,7 +154,8 @@ class FactoryMiniMapView:
         self._viewport_window = vp_util.get_active_viewport_window()
         self._overlay_frame = self._viewport_window.get_frame("factory_minimap")
         with self._overlay_frame:
-            with ui.ZStack():
+            inner_stack = ui.ZStack()
+            with inner_stack:
                 with ui.VStack():
                     ui.Spacer()
                     with ui.HStack(height=ui.Pixel(self.CANVAS_H)):
@@ -255,6 +257,10 @@ class FactoryMiniMapView:
     def _on_mouse_pressed(self, x, y, button, modifier):
         if button == 0:
             self._drag_start = (x, y)
+            self._disable_selection_token = vp_util.disable_selection(
+                vp_util.get_active_viewport_window(),
+                disable_click=True
+            )
 
     def _on_mouse_moved(self, x, y, modifier, dragging):
         self._mouse_x = x
@@ -269,6 +275,8 @@ class FactoryMiniMapView:
 
     def _on_mouse_released(self, x, y, button, modifier):
         self._drag_start = None
+        if self._disable_selection_token:
+            self._disable_selection_token = None
 
     def _on_scroll(self, dx, dy, modifier):
         scale_old = self._scale
