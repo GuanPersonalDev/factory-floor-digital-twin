@@ -69,13 +69,9 @@ class MachineInfoList:
         self._root_stack.clear()
         with self._root_stack:
             FactoryStyle.draw_section_title("Machine List:")
-            with ui.ScrollingFrame(
-                horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF,
-                vertical_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_AS_NEEDED,
-            ):
-                with ui.VStack(height=0, spacing=2):
-                    for unit_row_info in self._list_data.get_row_info_list():
-                        self._render_one_raw(unit_row_info)
+            with ui.VStack(height=0, spacing=2):
+                for unit_row_info in self._list_data.get_row_info_list():
+                    self._render_one_raw(unit_row_info)
 
     def _render_one_raw(self, row_info: UnitRowInfo):
         (main_color, badge_style) = self._color_and_badge(row_info)

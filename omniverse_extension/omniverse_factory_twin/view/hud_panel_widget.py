@@ -40,6 +40,12 @@ class HudPanelWidget:
                 self._factory_overview.build()
                 self._alert_machines_view.build()
                 self._machine_info_list.build()
+                ui.Spacer(height=10)
+
+                # with ui.ScrollingFrame(
+                #     horizontal_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_ALWAYS_OFF,
+                #     vertical_scrollbar_policy=ui.ScrollBarPolicy.SCROLLBAR_AS_NEEDED,
+                # ):
     
 
     def bind_overview_data(self, overview_info: OverviewData):
