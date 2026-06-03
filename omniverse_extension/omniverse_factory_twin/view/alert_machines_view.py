@@ -8,6 +8,9 @@ import omni.ui as ui
 
 # Factory
 from .style_sheet import FactoryStyleSheet as FactoryStyle
+from ..model.machine_prim_solver import get_machine_prim_path
+from omniverse_extension.tool.camera_utility import jump_to_prim
+
 
 @dataclass
 class UnitAlertMachine:
@@ -133,6 +136,7 @@ class MachineCard:
         self._severity_bar = None
         self._main_stack = None
         self._param_plot_cache = []
+        self._machine_id = None
 
     def set_plot_data_expect_half_count(self, count: int):
         self.plot_data_expect_half_count = count
@@ -149,11 +153,22 @@ class MachineCard:
                     ui.Spacer(height=self._SPACE_NAME_PLOT)
                     self._main_stack = ui.VStack()
                     ui.Spacer(height=self._SPACE_PLOT_PLOT)
-                    self._build_export_button()
+                    self._build_buttons()
                     ui.Spacer(height=self._CARD_INNER_MARGIN)
 
-    def _build_export_button(self):
+    def _build_buttons(self):
+        with ui.HStack():
+            ui.Spacer()
+            ui.Button("Check 3D Model", width=120, clicked_fn=self._on_check_model_clicked)
+            ui.Spacer()
         pass
+
+    def _on_check_model_clicked(self):
+        print("Check 3D Model clicked")
+        if self._machine_id:
+            prim_path = get_machine_prim_path(self._name_label.text)
+            jump_to_prim(prim_path)
+        
 
       
     def disable(self):
@@ -166,6 +181,7 @@ class MachineCard:
         self._bg.style = FactoryStyle.alert_card_bg_style(main_color, secondary_color)
         self._severity_bar.style = FactoryStyle.row_severity_bar_style(main_color)
         self._name_label.text = unit_alert.machine_id
+        self._machine_id = unit_alert.machine_id
 
         plot_index = 0
         for (param, param_info) in unit_alert.alert_param_info.items():
