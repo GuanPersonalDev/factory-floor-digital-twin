@@ -1,6 +1,12 @@
 # Machine setting file
 
 [[machines]]
+machine_id = "m_00"
+display_name = "機械手臂00 #0"
+usd_prim_path = "/World/Samples/Welding_Assembly_Animated_Adjust/Welding_Assembly_Animated_Export/root/RobotController/Link1/KR_U20_120_U20_R2500_U20_pro"
+zone = "ZoneA"
+
+[[machines]]
 machine_id = "m_01"
 display_name = "機器手臂01 #1"
 usd_prim_path = "/World/Samples/Welding_Assembly_Animated_Adjust/Welding_Assembly_Animated_Export/root/RobotPedestal"
@@ -15,7 +21,7 @@ zone = "ZoneA"
 [[machines]]
 machine_id = "m_03"
 display_name = "機器手臂03 #3"
-usd_prim_path = "/World/Samples/Welding_Assembly_Animated_Adjust/Welding_Assembly_Animated_Export/root/RobotPedestal_U20__U23_3/Link1/KR_U20_120_U20_R2500_U20_pro_U20__U23_3"
+usd_prim_path = "/World/Samples/Welding_Assembly_Animated_Adjust/Welding_Assembly_Animated_Export/root/RobotPedestal_U20__U23_3"
 zone = "ZoneA"
 
 [[machines]]
@@ -29,3 +35,22 @@ machine_id = "m_05"
 display_name = "機器手臂_狀態異常模擬 #5"
 usd_prim_path = "/World/Samples/Welding_Assembly_Animated_Adjust/Welding_Assembly_Animated_Export/root/RobotPedestal_U20__U23_11"
 zone = "ZoneB"
+
+[[machines]]
+machine_id = "m_06"
+display_name = "機器手臂06 #6"
+usd_prim_path = "/World/Samples/Welding_Assembly_Animated_Adjust/Welding_Assembly_Animated_Export/root/RobotPedestal_U20__U23_10"
+zone = "ZoneB"
+
+[[machines]]
+machine_id = "m_07"
+display_name = "機器手臂07 #7"
+usd_prim_path = "/World/Samples/Welding_Assembly_Animated_Adjust/Welding_Assembly_Animated_Export/root/RobotPedestal_U20__U23_4"
+zone = "ZoneB"
+
+[[machines]]
+machine_id = "m_08"
+display_name = "機器手臂08 #8"
+usd_prim_path = "/World/Samples/Welding_Assembly_Animated_Adjust/Welding_Assembly_Animated_Export/root/RobotPedestal_U20__U23_9"
+zone = "ZoneB"
+
