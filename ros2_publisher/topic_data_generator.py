@@ -29,12 +29,12 @@ class MachineState:
             self._config.TEMPERATURE_PARAM_KEY: SensorSimulator(
                 trend= NewtonCoolingTrend(idle=25.0, target=self._config.get_trend_target(self._config.TEMPERATURE_PARAM_KEY), tau=self._config.get_trend_tau(self._config.TEMPERATURE_PARAM_KEY)),
                 noise= EMANoise(alpha=1.0, sigma=0.3, initial= 25.0),
-                anomaly= PoissonAnomaly(trigger_prob=0.02, delta_warning=10.0, delta_error=25.0, duration=30, baseline_target=65.0)
+                anomaly= PoissonAnomaly(trigger_prob=0.005, delta_warning=10.0, delta_error=25.0, duration=30, baseline_target=65.0)
             ),
             self._config.VIBRATION_PARAM_KEY: SensorSimulator(
                 trend= NewtonCoolingTrend(idle= 2.0, target=self._config.get_trend_target(self._config.VIBRATION_PARAM_KEY), tau=self._config.get_trend_tau(self._config.VIBRATION_PARAM_KEY)),
                 noise = EMANoise(alpha=0.15, sigma=0.3, initial= 2.0),
-                anomaly= PoissonAnomaly(trigger_prob= 0.02, delta_warning=3.5, delta_error=9.0, duration=30, baseline_target= 2.0)
+                anomaly= PoissonAnomaly(trigger_prob= 0.005, delta_warning=3.5, delta_error=9.0, duration=30, baseline_target= 2.0)
             )
         }
 
