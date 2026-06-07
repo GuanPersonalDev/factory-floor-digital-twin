@@ -11,6 +11,7 @@ class FactoryStyleSheet:
     __BUTTON_LABEL = "Button.Label"
     __V_STACK = "VStack"
     __PLOT = "Plot"
+    __SCROLL_FRAME = "ScrollingFrame"
 
     __FONT_SIZE = "font_size"
     __FONT_WEIGHT = "font_weight"
@@ -48,7 +49,7 @@ class FactoryStyleSheet:
     col_error_secondary = color("#2A1010")
     col_offline = color("#6E7681")
     col_idle = color("#58A6FF")
-    col_mini_map_bg = color(26, 26, 26, 128)
+    col_viewport_window_bg = color(26, 26, 26, 128)
     
     # Text Size
     text_title_size = 18
@@ -100,6 +101,13 @@ class FactoryStyleSheet:
         g = (value >> 8) & 0xFF
         b = (value >> 16) & 0xFF
         return color(r, g, b, alpha)
+
+    # Viewport window hud
+    viewport_window_hud_scroll_frame = {
+        __SCROLL_FRAME: {
+            __BG_COLOR: col_viewport_window_bg,
+        }
+    }
 
 
     # Overview
@@ -322,7 +330,7 @@ class FactoryStyleSheet:
     # Mini map
     mini_map_bg = {
         __RECTANGLE:{
-            __BG_COLOR: col_mini_map_bg,
+            __BG_COLOR: col_viewport_window_bg,
             __BORDER_RADIUS: 10,
         }
     }

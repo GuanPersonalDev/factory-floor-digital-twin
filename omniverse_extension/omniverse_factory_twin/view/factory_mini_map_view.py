@@ -189,14 +189,14 @@ class FactoryMiniMapView:
     def _build_zones(self):
         for zone_id, zone in self._data.factory_rect.zones.items():
             zone_relative_rect = self._to_pixel(zone.rect)
-            rect = self._build_rect_widget(zone_id, zone_relative_rect, FactoryStyle.col_mini_map_bg, button_callback=None)
+            rect = self._build_rect_widget(zone_id, zone_relative_rect, FactoryStyle.col_viewport_window_bg, button_callback=None)
             self._zone_widget_collection[zone_id] = rect
 
     def _build_machines(self):
         for _, zone in self._data.factory_rect.zones.items():
             for machine in zone.machines:
                 machine_relative_rect = self._to_pixel(machine.rect)
-                rect = self._build_rect_widget(machine.machine_id, machine_relative_rect, FactoryStyle.col_mini_map_bg, button_callback=lambda mid=machine.machine_id: self._on_machine_rect_clicked(mid))
+                rect = self._build_rect_widget(machine.machine_id, machine_relative_rect, FactoryStyle.col_viewport_window_bg, button_callback=lambda mid=machine.machine_id: self._on_machine_rect_clicked(mid))
                 self._machine_widget_collection[machine.machine_id] = rect
 
     def _on_machine_rect_clicked(self, machine_id):
@@ -239,7 +239,7 @@ class FactoryMiniMapView:
                 return (FactoryStyle.col_warning, FactoryStyle.col_warning_secondary)
             case 2:
                 return (FactoryStyle.col_error, FactoryStyle.col_error_secondary)
-        return (FactoryStyle.col_normal , FactoryStyle.col_mini_map_bg)
+        return (FactoryStyle.col_normal , FactoryStyle.col_viewport_window_bg)
  
     
     def _update_layout(self):
