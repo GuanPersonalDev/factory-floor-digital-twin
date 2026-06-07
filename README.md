@@ -2,7 +2,8 @@
 
 Factory Floor Digital Twin 是一個以 NVIDIA Omniverse Kit 呈現的工廠數位分身 Demo。系統會從 ROS2 產生模擬機台資料，透過 MQTT 傳遞到 Omniverse extension，最後在 USD factory scene 中更新機台狀態、顏色、HUD、告警列表、小地圖與機台標籤。
 
-> Demo 影片：待補
+## Demo video
+<video src="demo/demo.mp4" controls width="100%"></video>
 
 ## Demo 場景資產
 
