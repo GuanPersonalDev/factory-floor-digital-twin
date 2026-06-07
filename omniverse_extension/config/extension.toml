@@ -8,3 +8,5 @@ name = "omniverse_factory_twin"
 
 [dependencies]
 "omni.kit.uiapp" = {}
+"omni.ui.scene" = {}
+"omni.kit.viewport.registry" = {}

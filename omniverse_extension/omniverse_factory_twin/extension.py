@@ -22,6 +22,7 @@ from .factory_log import FactoryLog
 from .prim_render_manager import PrimRenderManager
 from .view.hud_panel_widget import HudPanelWidget
 from .view.factory_mini_map_view import FactoryMiniMapView
+from .view.machine_label_view import MachineLabelView
 
 class FactoryTwinExtension(BaseMqttExtension):
 
@@ -39,6 +40,7 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._all_machine = AllMachine(self._config)
         self._hud: HudPanelWidget = None
         self._mini_map_view: FactoryMiniMapView = None
+        self._machine_label_view: MachineLabelView = None
         self._stage_event_sub = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
             self.on_stage_event,
             name="factory twin stage ready"
@@ -70,6 +72,9 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._mini_map_view.bind_mini_map_data(self._all_machine.get_mini_map_delegate())
         self._mini_map_view.build()
 
+        self._machine_label_view = MachineLabelView()
+        self._machine_label_view.build(stage, self._all_machine.get_all_machines())
+
     def on_stage_event(self, event):
         if event.type == int(StageEventType.OPENED):
             if self._prim_render_manager.is_building:
@@ -99,6 +104,8 @@ class FactoryTwinExtension(BaseMqttExtension):
                 self._hud.destroy()
             if self._mini_map_view:
                 self._mini_map_view.destroy()
+            if self._machine_label_view:
+                self._machine_label_view.destroy()
         self._logger.log("[Factory Twin] Extension end")
         self._logger = None
 

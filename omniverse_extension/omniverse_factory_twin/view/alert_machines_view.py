@@ -10,6 +10,7 @@ import omni.ui as ui
 from .style_sheet import FactoryStyleSheet as FactoryStyle
 from ..model.machine_prim_solver import get_machine_prim_path
 from omniverse_extension.tool.camera_utility import jump_to_prim
+from ..factory_events import emit_camera_jumped
 
 
 @dataclass
@@ -167,8 +168,10 @@ class MachineCard:
         print("Check 3D Model clicked")
         if self._machine_id:
             prim_path = get_machine_prim_path(self._name_label.text)
-            jump_to_prim(prim_path)
-        
+            if jump_to_prim(prim_path):
+                emit_camera_jumped(self._machine_id)
+
+                    
 
       
     def disable(self):

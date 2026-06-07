@@ -10,6 +10,7 @@ import omni.ui as ui
 from .style_sheet import FactoryStyleSheet as FactoryStyle
 from ..model.machine_prim_solver import get_machine_prim_path
 from omniverse_extension.tool.camera_utility import jump_to_prim
+from ..factory_events import emit_camera_jumped
 
 @dataclass
 class UnitRowInfo:
@@ -94,7 +95,8 @@ class MachineInfoList:
 
     def _on_machine_row_clicked(self, machine_id: str):
         prim_path = get_machine_prim_path(machine_id)
-        jump_to_prim(prim_path)
+        if jump_to_prim(prim_path):
+            emit_camera_jumped(machine_id)
 
     def _color_and_badge(self, raw_info: UnitRowInfo):
         if raw_info.operation_mode == FactoryConfig.OFFLINE_MODE_KEY:

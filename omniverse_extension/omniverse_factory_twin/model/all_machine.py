@@ -40,7 +40,8 @@ class AllMachine:
         self._factory_overview_delegate.update(machines)
         self._machine_info_list_delegate.update(machines)
         self._alert_machines_view_delegate.update(machines, log)
-        self._mini_map_delegate.update(self._machine_model_dic)
+        if self._mini_map_delegate:
+            self._mini_map_delegate.update(self._machine_model_dic)
 
     def get_overview_delegate(self) -> OverviewData:
         return self._factory_overview_delegate
@@ -53,6 +54,9 @@ class AllMachine:
 
     def get_mini_map_delegate(self) -> FactoryMiniMapData:
         return self._mini_map_delegate
+
+    def get_all_machines(self) -> list[MachineModel]:
+        return list(self._machine_model_dic.values())
 
     def get_dirty_machines(self, flag: str) -> list[MachineModel]:
         result = []
