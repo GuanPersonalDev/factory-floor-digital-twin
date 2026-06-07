@@ -110,7 +110,7 @@ class FactoryTwinExtension(BaseMqttExtension):
         self._logger = None
 
     def get_mqtt_topics(self):
-        return get_all_machines_mqtt_pattern()
+        return [get_all_machines_mqtt_pattern()]
 
     # Called by base class
     def on_mqtt_message(self, topic: str, data: dict):
